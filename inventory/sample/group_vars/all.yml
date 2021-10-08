@@ -8,5 +8,5 @@ extra_agent_args: ""
 
 # Selinux
 k3s_selinux_enable: true
-k3s_selinux_release: v0.3.latest.0
-k3s_selinux_package: k3s-selinux-0.3-0
+k3s_selinux_release: v0.4.latest.1
+k3s_selinux_package: k3s-selinux-0.4-1

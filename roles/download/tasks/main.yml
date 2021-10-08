@@ -1,5 +1,29 @@
 ---
 
+- name: Check if k3s binary is present
+  stat:
+    path: /usr/local/bin/k3s
+  register: k3s_bin
+
+- name: K3s version check
+  command: /usr/local/bin/k3s --version
+  register: ks3_local_version
+  when: k3s_bin.stat.exists
+  check_mode: no
+
+- name: Delete k3s if already present and the wrong version
+  file:
+    path: /usr/local/bin/k3s
+    state: absent
+  when:
+    - not k3s_bin.stat.exists
+    - ks3_local_version.stdout.find(k3s_version) == -1
+
+- name: Check if k3s binary is present
+  stat:
+    path: /usr/local/bin/k3s
+  register: k3s_bin
+
 - name: Download k3s binary x64
   get_url:
     url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/k3s
@@ -8,7 +32,9 @@
     owner: root
     group: root
     mode: 0755
-  when: ansible_facts.architecture == "x86_64"
+  when:
+    - not k3s_bin.stat.exists
+    - ansible_facts.architecture == "x86_64"
 
 - name: Download k3s binary arm64
   get_url:
@@ -19,6 +45,7 @@
     group: root
     mode: 0755
   when:
+    - not k3s_bin.stat.exists
     - ( ansible_facts.architecture is search("arm") and
         ansible_facts.userspace_bits == "64" ) or
       ansible_facts.architecture is search("aarch64")
@@ -32,5 +59,6 @@
     group: root
     mode: 0755
   when:
+    - not k3s_bin.stat.exists
     - ansible_facts.architecture is search("arm")
     - ansible_facts.userspace_bits == "32"

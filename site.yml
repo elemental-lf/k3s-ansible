@@ -7,7 +7,6 @@
   roles:
     - role: k3s/prereq
     - role: k3s/download
-    - role: raspberrypi
 
 - hosts: server
   become: yes

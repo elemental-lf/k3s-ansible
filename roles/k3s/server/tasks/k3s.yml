@@ -13,6 +13,8 @@
   args:
     warn: false  # The ansible systemd module does not support reset-failed
 
+# This task will be skipped if k3s.service already exists. So the initialization will only be performed if it hasn't
+# been done yet.
 - name: Init cluster inside the transient k3s-init service
   command:
     cmd: "systemd-run -p RestartSec=2 \

@@ -1,0 +1,7 @@
+---
+
+k3s_version: v1.22.2+k3s2
+ansible_user: vagrant
+
+apiserver_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
+k3s_token: "mysupersecuretoken"

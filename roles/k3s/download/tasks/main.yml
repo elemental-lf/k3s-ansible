@@ -11,7 +11,7 @@
   when: k3s_bin.stat.exists
   check_mode: no
 
-- name: Delete k3s if already present and the wrong version
+- name: Delete k3s if already present and it is the wrong version
   file:
     path: /usr/local/bin/k3s
     state: absent

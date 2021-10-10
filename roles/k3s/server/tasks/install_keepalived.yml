@@ -19,7 +19,7 @@
     state: present
     reload: yes
 
-- name: Ensure variables are set on Primary server
+- name: Ensure variables are set on primary server
   set_fact:
     vr_priority: '200'
     vr_state: MASTER
@@ -35,7 +35,7 @@
     mode: '0644'
   notify: restart-keepalived-service
 
-- name: Ensure keepalived service k3s check script is correct
+- name: Ensure keepalived service k3s check script is present
   template:
     src: check_k3s.sh.j2
     dest: /etc/keepalived/check_k3s.sh

@@ -21,8 +21,8 @@
 
 - name: Ensure variables are set on primary server
   set_fact:
-    vr_priority: '200'
-    vr_state: MASTER
+    keepalived_vrrp_priority: '200'
+    keepalived_vrrp_state: 'MASTER'
   when:
     - ansible_host == hostvars[groups['server'][0]]['ansible_host']
 

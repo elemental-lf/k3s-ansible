@@ -1,8 +1,11 @@
 ---
 
+systemd_dir: /etc/systemd/system
+
 keepalived_enabled: false
 
-ansible_user: root
+extra_server_args: ""
+
 server_init_args: >-
   {% if groups['server'] | length > 1 %}
     {% if ansible_host == hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) %}

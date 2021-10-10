@@ -1,7 +1,9 @@
 ---
 k3s_version: v1.22.2+k3s2
 ansible_user: debian
-systemd_dir: /etc/systemd/system
+
+# Directory where the k3s systemd service file will be installed
+# systemd_dir: /etc/systemd/system
 
 # If you define multiple servers you should be providing a loadbalanced
 # apiserver endpoint to all servers here. This default value is only suitable
@@ -16,8 +18,9 @@ k3s_token: "mysupersecuretoken"
 # Be sure to update the apiserver_endpoint with a dedicated IP address that is not in use by the cluster
 # keepalived_enabled: true
 
-extra_server_args: ""
-extra_agent_args: ""
+# Provide additional server or agent arguments
+# extra_server_args: ""
+# extra_agent_args: ""
 
 # Selinux
 k3s_selinux_enable: true

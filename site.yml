@@ -9,11 +9,15 @@
     - role: k3s/download
 
 - hosts: server
+  any_errors_fatal: true
+  gather_facts: yes
   become: yes
   roles:
     - role: k3s/server
 
 - hosts: agent
+  any_errors_fatal: true
+  gather_facts: yes
   become: yes
   roles:
     - role: k3s/agent

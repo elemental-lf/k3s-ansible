@@ -3,19 +3,19 @@
 - name: Disable control plane HA services
   block:
     - name: Stop and disable keepalived service
-      ansible.builtin.systemd:
+      systemd:
         name: keepalived
         state: stopped
         enabled: no
       failed_when: false
 
     - name: Remove keepalived package
-      ansible.builtin.package:
+      package:
         name: keepalived
         state: absent
 
     - name: Remove keepalived configuration
-      ansible.builtin.file:
+      file:
         name: "{{ item }}"
         state: absent
       loop:
@@ -27,7 +27,7 @@
     - keepalived_enabled  # also want to be sure this is the desired configuration
 
 - name: Disable services
-  ansible.builtin.systemd:
+  systemd:
     name: "{{ item }}"
     state: stopped
     enabled: no
@@ -39,7 +39,7 @@
 
 - name: pkill -9 -f "k3s/data/[^/]+/bin/containerd-shim-runc"
   register: pkill_containerd_shim_runc
-  ansible.builtin.command: pkill -9 -f "k3s/data/[^/]+/bin/containerd-shim-runc"
+  command: pkill -9 -f "k3s/data/[^/]+/bin/containerd-shim-runc"
   changed_when: "pkill_containerd_shim_runc.rc == 0"
   failed_when: false
 
@@ -54,7 +54,7 @@
     loop_var: mounted_fs
 
 - name: Remove service files, binaries and data
-  ansible.builtin.file:
+  file:
     name: "{{ item }}"
     state: absent
   with_items:
@@ -66,8 +66,8 @@
     - /var/lib/rancher/k3s
 
 - name: daemon_reload
-  ansible.builtin.systemd:
+  systemd:
     daemon_reload: yes
 
 - name: Reboot
-  ansible.builtin.reboot:
+  reboot:

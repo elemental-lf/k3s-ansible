@@ -14,11 +14,12 @@
     state: installed
   when:
     - k3s_selinux_enable
+    - k3s_selinux_packages | length > 0
 
 - name: Set SELinux state
   selinux:
     policy: "targeted"
-    state: "{{ 'enforcing' if k3s_selinux_enable else 'disabled' }}"
+    state: "{{ 'enforcing' if (k3s_selinux_enable and k3s_selinux_packages | length > 0) else 'disabled' }}"
 
 - name: Enable IPv4 forwarding
   sysctl:

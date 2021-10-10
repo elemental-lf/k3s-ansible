@@ -1,0 +1,5 @@
+---
+
+k3s_selinux_enable: false
+k3s_selinux_release: v0.4.latest.1
+k3s_selinux_package: k3s-selinux-0.4-1

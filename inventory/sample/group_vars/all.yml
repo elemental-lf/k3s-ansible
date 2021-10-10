@@ -22,7 +22,5 @@ k3s_token: "mysupersecuretoken"
 # extra_server_args: ""
 # extra_agent_args: ""
 
-# Selinux
-k3s_selinux_enable: true
-k3s_selinux_release: v0.4.latest.1
-k3s_selinux_package: k3s-selinux-0.4-1
+# If set to true don't disable SELinux
+# k3s_selinux_enable: false

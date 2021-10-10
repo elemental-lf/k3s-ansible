@@ -16,7 +16,7 @@
     path: /usr/local/bin/k3s
     state: absent
   when:
-    - not k3s_bin.stat.exists
+    - k3s_bin.stat.exists
     - ks3_local_version.stdout is defined and (ks3_local_version.stdout.find(k3s_version) == -1)
 
 - name: Check if k3s binary is present

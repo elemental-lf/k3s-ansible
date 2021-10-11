@@ -109,3 +109,14 @@
     path: /etc/sudoers
     validate: 'visudo -cf %s'
   when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux','RedHat']
+
+# Currently, kubectl isn't designed with swap space in mind.
+# But this will change, see https://github.com/kubernetes/enhancements/issues/2400.
+- name: Disable swap devices and files in /etc/fstab (if any)
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\s+swap\s+.*)$'
+    replace: '# \1'
+
+- name: Disable active swap devices and files (if any)
+  command: swapoff --all

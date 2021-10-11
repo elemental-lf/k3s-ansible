@@ -44,7 +44,6 @@
       k3s_selinux_state: 'enforcing'
   when:
     - k3s_selinux_enable
-    - k3s_selinux_packages | length > 0
     - ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux','RedHat']
 
 - name: Set SELinux state

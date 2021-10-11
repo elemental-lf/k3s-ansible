@@ -1,5 +1,0 @@
----
-k3s_selinux_packages:
-  - container-selinux
-  - selinux-policy-base
-  - "https://github.com/k3s-io/k3s-selinux/releases/download/{{k3s_selinux_release}}/{{k3s_selinux_package}}.el8.noarch.rpm"

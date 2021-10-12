@@ -55,7 +55,7 @@
   systemd:
     name: firewalld
     state: stopped
-    enabled: yes
+    enabled: no
   # firewalld might not be installed
   failed_when: false
   when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux','RedHat']

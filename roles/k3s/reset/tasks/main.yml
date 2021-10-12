@@ -59,6 +59,7 @@
     state: absent
   with_items:
     - /usr/local/bin/k3s
+    - /usr/local/bin/ctr
     - "{{ systemd_dir }}/k3s.service"
     - "{{ systemd_dir }}/k3s-agent.service"
     - /etc/rancher/k3s

@@ -67,6 +67,7 @@
     - /etc/rancher/k3s
     - /var/lib/kubelet
     - /var/lib/rancher/k3s
+    - /var/lib/cni
     - /run/flannel
     - /run/k3s
     - /etc/yum.repos.d/rancher-k3s-common.repo

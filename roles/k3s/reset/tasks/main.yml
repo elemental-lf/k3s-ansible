@@ -59,12 +59,22 @@
     state: absent
   with_items:
     - /usr/local/bin/k3s
+    - /usr/local/bin/crictl
     - /usr/local/bin/ctr
+    - /usr/local/bin/kubectl
     - "{{ systemd_dir }}/k3s.service"
     - "{{ systemd_dir }}/k3s-agent.service"
     - /etc/rancher/k3s
     - /var/lib/kubelet
     - /var/lib/rancher/k3s
+    - /run/flannel
+    - /run/k3s
+    - /etc/yum.repos.d/rancher-k3s-common.repo
+
+- name: Remove k3s-selinux package
+  yum:
+    name: k3s-selinux
+    state: absent
 
 - name: daemon_reload
   systemd:

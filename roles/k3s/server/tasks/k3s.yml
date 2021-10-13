@@ -81,20 +81,40 @@
     owner: "{{ ansible_user }}"
     mode: "u=rwx,g=rx,o="
 
-- name: Copy config file to user home directory
+- name: "Copy kubeconfig to user's home directory"
   copy:
     src: /etc/rancher/k3s/k3s.yaml
-    dest: ~{{ ansible_user }}/.kube/config
+    dest: ~{{ ansible_user }}/.kube/config.ansible
     remote_src: yes
     owner: "{{ ansible_user }}"
     mode: "u=rw,g=,o="
+  changed_when: false
 
-- name: Configure kubectl cluster to https://{{ apiserver_endpoint }}:6443
+- name: Configure kubeconfig to use https://{{ apiserver_endpoint }}:6443
   command: >-
     /usr/local/bin/k3s kubectl config set-cluster default
       --server=https://{{ apiserver_endpoint }}:6443
-      --kubeconfig ~{{ ansible_user }}/.kube/config
+      --kubeconfig ~{{ ansible_user }}/.kube/config.ansible
+  changed_when: false
+
+- name: Stat new version of kubeconfig
+  stat:
+    path: "~{{ ansible_user }}/.kube/config.ansible"
+  register: kubeconfig_ansible_stat
+  changed_when: false
+
+- name: Stat old version of kubeconfig
+  stat:
+    path: "~{{ ansible_user }}/.kube/config"
+  register: kubeconfig_stat
+  changed_when: false
+
+- name: Move kubeconfig into place
+  command: mv -f ~{{ ansible_user }}/.kube/config.ansible ~{{ ansible_user }}/.kube/config
   changed_when: true
+  when:
+    - not kubeconfig_stat.stat.exists or (kubeconfig_stat.stat.checksum is defined and
+        kubeconfig_stat.stat.checksum != kubeconfig_ansible_stat.stat.checksum)
 
 - name: Create kubectl symlink
   file:

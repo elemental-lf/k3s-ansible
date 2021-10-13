@@ -61,15 +61,18 @@
 - name: Wait for node-token
   wait_for:
     path: /var/lib/rancher/k3s/server/node-token
+  run_once: true
 
 - name: Read node-token from server
   slurp:
     src: /var/lib/rancher/k3s/server/node-token
   register: node_token
+  run_once: true
 
 - name: Store server node-token
   set_fact:
     token: "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
+  run_once: true
 
 - name: Create directory .kube
   file:

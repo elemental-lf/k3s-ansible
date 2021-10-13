@@ -8,6 +8,7 @@
 - name: K3s version check
   command: /usr/local/bin/k3s --version
   register: ks3_local_version
+  changed_when: false
   when: k3s_bin.stat.exists
   check_mode: no
 

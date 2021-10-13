@@ -117,5 +117,12 @@
     regexp: '^([^#].*?\s+swap\s+.*)$'
     replace: '# \1'
 
+- name: Check for active swap devices or files
+  command: swapon --show --noheadings
+  register: swapon_show
+  changed_when: false
+
 - name: Disable active swap devices and files (if any)
   command: swapoff --all
+  changed_when: true
+  when: swapon_show.stdout_lines | length > 0

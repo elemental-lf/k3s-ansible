@@ -121,6 +121,7 @@
   command: swapon --show --noheadings
   register: swapon_show
   changed_when: false
+  check_mode: no
 
 - name: Disable active swap devices and files (if any)
   command: swapoff --all

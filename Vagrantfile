@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 NUM_SERVERS = 3
-NUM_AGENTS = 1
+NUM_AGENTS = 2
 
 IP_MGMT = "192.168.177.10"
 IP_SERVER_BASE = "192.168.177.1"

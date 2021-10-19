@@ -1,12 +1,14 @@
 ---
 
-- name: Clean previous runs of k3s-init
+- name: Clean previous runs of k3s-init (stop service)
   systemd:
     name: k3s-init
     state: stopped
   failed_when: false
+  when: not ansible_check_mode
 
-- name: Clean previous runs of k3s-init
+# This will remove the transient service if systemd kept it around because it failed.
+- name: Clean previous runs of k3s-init (remove failed transient service)
   command: systemctl reset-failed k3s-init
   failed_when: false
   changed_when: false
@@ -35,12 +37,22 @@
       retries: 20
       delay: 10
       changed_when: false
+      check_mode: false
   always:
     - name: Kill the temporary service used for initialization
       systemd:
         name: k3s-init
         state: stopped
       failed_when: false
+      when: not ansible_check_mode
+
+    # This will remove the transient service if systemd kept it around because it failed.
+    - name: Clean up the transient k3s-init service
+      command: systemctl reset-failed k3s-init
+      failed_when: false
+      changed_when: false
+      args:
+        warn: false  # The ansible systemd module does not support reset-failed
 
 - name: Copy K3s service file
   register: k3s_service
@@ -76,41 +88,53 @@
 
 - name: Create directory .kube
   file:
-    path: ~{{ ansible_user }}/.kube
+    path: "~{{ ansible_user }}/.kube"
     state: directory
     owner: "{{ ansible_user }}"
     mode: "u=rwx,g=rx,o="
 
-- name: "Copy kubeconfig to user's home directory"
+- name: "Create temporary kubeconfig file"
+  tempfile:
+    state: file
+    prefix: kubeconfig-{{ ansible_user }}-
+  register: kubeconfig_ansible_tempfile
+  changed_when: false
+  check_mode: false
+
+- name: "Copy system kubeconfig to temporary kubeconfig"
   copy:
     src: /etc/rancher/k3s/k3s.yaml
-    dest: ~{{ ansible_user }}/.kube/config.ansible
+    dest: "{{ kubeconfig_ansible_tempfile.path }}"
     remote_src: yes
     owner: "{{ ansible_user }}"
     mode: "u=rw,g=,o="
   changed_when: false
+  check_mode: false
 
 - name: Configure kubeconfig to use https://{{ apiserver_endpoint }}:6443
   command: >-
     /usr/local/bin/k3s kubectl config set-cluster default
       --server=https://{{ apiserver_endpoint }}:6443
-      --kubeconfig ~{{ ansible_user }}/.kube/config.ansible
+      --kubeconfig {{ kubeconfig_ansible_tempfile.path }}
   changed_when: false
+  check_mode: false
 
-- name: Stat new version of kubeconfig
+- name: Stat temporary version of kubeconfig
   stat:
-    path: "~{{ ansible_user }}/.kube/config.ansible"
+    path: "{{ kubeconfig_ansible_tempfile.path }}"
   register: kubeconfig_ansible_stat
   changed_when: false
+  check_mode: false
 
-- name: Stat old version of kubeconfig
+- name: Stat existing version of kubeconfig
   stat:
     path: "~{{ ansible_user }}/.kube/config"
   register: kubeconfig_stat
   changed_when: false
+  check_mode: false
 
-- name: Move kubeconfig into place
-  command: mv -f ~{{ ansible_user }}/.kube/config.ansible ~{{ ansible_user }}/.kube/config
+- name: Move new kubeconfig into place
+  command: mv -f {{ kubeconfig_ansible_tempfile.path }} ~{{ ansible_user }}/.kube/config
   changed_when: true
   when:
     - not kubeconfig_stat.stat.exists or (kubeconfig_stat.stat.checksum is defined and

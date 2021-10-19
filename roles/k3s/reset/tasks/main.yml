@@ -8,6 +8,9 @@
         state: stopped
         enabled: no
       failed_when: false
+      # This will unfortunately hide the fact that this task would stop and disable the keepalived service if it is
+      # running.
+      when: not ansible_check_mode
 
     - name: Remove keepalived package
       package:
@@ -36,6 +39,9 @@
     - k3s
     - k3s-agent
     - k3s-init
+  # This will unfortunately hide the fact that this task would stop and disable the service in question if it is
+  # running.
+  when: not ansible_check_mode
 
 - name: pkill -9 -f "k3s/data/[^/]+/bin/containerd-shim-runc"
   register: pkill_containerd_shim_runc

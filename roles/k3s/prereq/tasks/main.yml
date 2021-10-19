@@ -24,6 +24,7 @@
           gpgcheck=1
           gpgkey=https://{{ rancher_rpm_site }}/public.key
         dest: /etc/yum.repos.d/rancher-k3s-common.repo
+        mode: "u=rw,g=r,o=r"
 
     - name: Install K3s SELinux related packages
       yum:

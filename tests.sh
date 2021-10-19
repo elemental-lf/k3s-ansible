@@ -17,6 +17,7 @@ function run_test() {
 EOF
 
   vagrant ssh mgmt -c "cd /vagrant; ansible-playbook -v "${playbook}" -i inventory/vagrant-${scenario}/hosts.ini ${ansible_flags[*]}"
+  vagrant ssh mgmt -c "cd /vagrant; ansible-playbook -v -C "${playbook}" -i inventory/vagrant-${scenario}/hosts.ini ${ansible_flags[*]}"
 
   cat <<EOF
 ########################################################################################################################

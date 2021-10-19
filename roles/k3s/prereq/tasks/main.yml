@@ -4,44 +4,45 @@
     k3s_selinux_state: 'disabled'
 
 - block:
-  - block:
-    - name: Install yum-utils for yum-config-manager
+    - block:
+        - name: Install yum-utils for yum-config-manager
+          yum:
+            name: yum-utils
+            state: installed
+
+        - name: Enable rhel-7-server-extras-rpms repo
+          command: yum-config-manager --enable rhel-7-server-extras-rpms
+      when: ansible_distribution in ['Red Hat Enterprise Linux'] and ansible_distribution_major_version == '7'
+
+    - name: Create /etc/yum.repos.d/rancher-k3s-common.repo
+      copy:
+        content: |
+          [rancher-k3s-common-{{ rancher_rpm_channel }}]
+          name=Rancher K3s Common ({{ rancher_rpm_channel }})
+          baseurl=https://{{ rancher_rpm_site }}/k3s/{{ rancher_rpm_channel }}/common/centos/{{ ansible_distribution_major_version }}/noarch
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://{{ rancher_rpm_site }}/public.key
+        dest: /etc/yum.repos.d/rancher-k3s-common.repo
+
+    - name: Install K3s SELinux related packages
       yum:
-        name: yum-utils
+        name:
+          - container-selinux
+          - selinux-policy-base
         state: installed
-    - name: Enable rhel-7-server-extras-rpms repo
-      command: yum-config-manager --enable rhel-7-server-extras-rpms
-    when: ansible_distribution in ['Red Hat Enterprise Linux'] and ansible_distribution_major_version == '7'
 
-  - name: Create /etc/yum.repos.d/rancher-k3s-common.repo
-    copy:
-      content: |
-        [rancher-k3s-common-{{ rancher_rpm_channel }}]
-        name=Rancher K3s Common ({{ rancher_rpm_channel }})
-        baseurl=https://{{ rancher_rpm_site }}/k3s/{{ rancher_rpm_channel }}/common/centos/{{ ansible_distribution_major_version }}/noarch
-        enabled=1
-        gpgcheck=1
-        gpgkey=https://{{ rancher_rpm_site }}/public.key
-      dest: /etc/yum.repos.d/rancher-k3s-common.repo
+    # Has to be a separate yum call from the above, otherwise yum's conflict resolution won't succeed
+    - name: Install k3s-selinux package
+      yum:
+        name: k3s-selinux
+        # k3s-selinux package might need older version of container-selinux.
+        allow_downgrade: true
+        state: installed
 
-  - name: Install K3s SELinux related packages
-    yum:
-      name:
-        - container-selinux
-        - selinux-policy-base
-      state: installed
-
-  # Has to be a separate yum call from the above, otherwise yum's conflict resolution won't succeed
-  - name: Install k3s-selinux package
-    yum:
-      name: k3s-selinux
-      # k3s-selinux package might need older version of container-selinux.
-      allow_downgrade: true
-      state: installed
-
-  - name: Record SELinux state
-    set_fact:
-      k3s_selinux_state: 'enforcing'
+    - name: Record SELinux state
+      set_fact:
+        k3s_selinux_state: 'enforcing'
   when:
     - k3s_selinux_enable
     - ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux','RedHat']

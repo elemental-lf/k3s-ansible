@@ -41,6 +41,7 @@ for scenario in single-server control-plane-ha keepalived-ha; do
     run_test site.yml "${scenario}" 2 -ek3s_version=v1.21.5+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}"
     run_test site.yml "${scenario}" 3 -ek3s_version=v1.21.5+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}"
     run_test site.yml "${scenario}" 3 -ek3s_version=v1.22.2+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}"
+    run_test site.yml "${scenario}" 3 -ek3s_version="" -ek3s_release_channel=v1.22 -ek3s_selinux_enable="${k3s_selinux_enable}"
     run_test reset.yml "${scenario}" 3
     vagrant destroy --force
   done

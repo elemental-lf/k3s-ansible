@@ -8,6 +8,7 @@
     return_content: false
   register: uri_k3s_release_channel_url
   when: k3s_version == ''
+  check_mode: no
 
 - set_fact:
     effective_k3s_version: "{{ uri_k3s_release_channel_url.url.split('/')[-1] }}"

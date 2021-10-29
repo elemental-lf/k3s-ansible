@@ -2,3 +2,5 @@
 k3s_release_channel_url: 'https://update.k3s.io/v1-release/channels'
 k3s_release_channel: 'latest'
 k3s_version: ''
+
+k3s_download_url: 'https://github.com/k3s-io/k3s/releases/download'

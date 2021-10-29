@@ -24,63 +24,70 @@
 - name: Check if k3s binary is present
   stat:
     path: /usr/local/bin/k3s
-  register: k3s_bin
+  register: stat_k3s_bin
+  check_mode: no
 
 - name: K3s version check
   command: /usr/local/bin/k3s --version
-  register: ks3_local_version
+  register: command_ks3_version
   changed_when: false
-  when: k3s_bin.stat.exists
+  when: stat_k3s_bin.stat.exists
   check_mode: no
 
-- name: Delete k3s if already present and it is the wrong version
-  file:
-    path: /usr/local/bin/k3s
-    state: absent
-  when:
-    - k3s_bin.stat.exists
-    - ks3_local_version.stdout is defined and (ks3_local_version.stdout.find(effective_k3s_version) == -1)
+- block:
+    - set_fact:
+        k3s_bin_download_path: "/usr/local/bin/k3s.{{ effective_k3s_version }}"
 
-- name: Check if k3s binary is present
-  stat:
-    path: /usr/local/bin/k3s
-  register: k3s_bin
+    - name: Download k3s binary x64
+      get_url:
+        url: https://github.com/k3s-io/k3s/releases/download/{{ effective_k3s_version }}/k3s
+        checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ effective_k3s_version }}/sha256sum-amd64.txt
+        dest: "{{ k3s_bin_download_path }}"
+        owner: root
+        group: root
+        mode: 0755
+      when:
+        - ansible_facts.architecture == "x86_64"
 
-- name: Download k3s binary x64
-  get_url:
-    url: https://github.com/k3s-io/k3s/releases/download/{{ effective_k3s_version }}/k3s
-    checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ effective_k3s_version }}/sha256sum-amd64.txt
-    dest: /usr/local/bin/k3s
-    owner: root
-    group: root
-    mode: 0755
-  when:
-    - not k3s_bin.stat.exists
-    - ansible_facts.architecture == "x86_64"
+    - name: Download k3s binary arm64
+      get_url:
+        url: https://github.com/k3s-io/k3s/releases/download/{{ effective_k3s_version }}/k3s-arm64
+        checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ effective_k3s_version }}/sha256sum-arm64.txt
+        dest: "{{ k3s_bin_download_path }}"
+        owner: root
+        group: root
+        mode: 0755
+      when:
+        - ( ansible_facts.architecture is search("arm") and
+            ansible_facts.userspace_bits == "64" ) or
+          ansible_facts.architecture is search("aarch64")
 
-- name: Download k3s binary arm64
-  get_url:
-    url: https://github.com/k3s-io/k3s/releases/download/{{ effective_k3s_version }}/k3s-arm64
-    checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ effective_k3s_version }}/sha256sum-arm64.txt
-    dest: /usr/local/bin/k3s
-    owner: root
-    group: root
-    mode: 0755
-  when:
-    - not k3s_bin.stat.exists
-    - ( ansible_facts.architecture is search("arm") and
-        ansible_facts.userspace_bits == "64" ) or
-      ansible_facts.architecture is search("aarch64")
+    - name: Download k3s binary armhf
+      get_url:
+        url: https://github.com/k3s-io/k3s/releases/download/{{ effective_k3s_version }}/k3s-armhf
+        checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ effective_k3s_version }}/sha256sum-arm.txt
+        dest: "{{ k3s_bin_download_path }}"
+        owner: root
+        group: root
+        mode: 0755
+      when:
+        - ansible_facts.architecture is search("arm")
+        - ansible_facts.userspace_bits == "32"
 
-- name: Download k3s binary armhf
-  get_url:
-    url: https://github.com/k3s-io/k3s/releases/download/{{ effective_k3s_version }}/k3s-armhf
-    checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ effective_k3s_version }}/sha256sum-arm.txt
-    dest: /usr/local/bin/k3s
-    owner: root
-    group: root
-    mode: 0755
+    - name: Move downloaded k3s binary into place
+      command:
+        cmd: mv -f {{ k3s_bin_download_path }} /usr/local/bin/k3s
+        removes: "{{ k3s_bin_download_path }}"
+        creates: /usr/local/bin/k3s
+  rescue:
+    - name: Remove downloaded k3s binary (if any)
+      file:
+        path: "{{ k3s_bin_download_path }}"
+        state: absent
+      ignore_errors: true
+
+    - name: Bail out if the download failed for some reason
+      fail:
+        msg: Download of k3s binary failed
   when:
-    - not k3s_bin.stat.exists
-    - ansible_facts.architecture is search("arm")
-    - ansible_facts.userspace_bits == "32"
+   - not stat_k3s_bin.stat.exists or (command_ks3_version.stdout is defined and (command_ks3_version.stdout.find(effective_k3s_version) == -1))

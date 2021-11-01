@@ -1,5 +1,11 @@
 ---
 
+- name: Move downloaded k3s binary into place
+  command:
+    cmd: mv -f {{ k3s_bin_download_path }} /usr/local/bin/k3s
+  changed_when: true
+  when: k3s_binary_changed
+
 - name: Copy K3s service file
   register: k3s_agent_service
   template:

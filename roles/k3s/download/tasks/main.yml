@@ -34,8 +34,12 @@
   when: stat_k3s_bin.stat.exists
   check_mode: no
 
+- set_fact:
+    k3s_binary_changed: false
+
 - block:
     - set_fact:
+        k3s_binary_changed: true
         k3s_bin_download_path: "/usr/local/bin/k3s.{{ effective_k3s_version }}"
 
     - name: Download k3s binary x64
@@ -73,12 +77,6 @@
       when:
         - ansible_facts.architecture is search("arm")
         - ansible_facts.userspace_bits == "32"
-
-    - name: Move downloaded k3s binary into place
-      command:
-        cmd: mv -f {{ k3s_bin_download_path }} /usr/local/bin/k3s
-        removes: "{{ k3s_bin_download_path }}"
-        creates: /usr/local/bin/k3s
   rescue:
     - name: Remove downloaded k3s binary (if any)
       file:

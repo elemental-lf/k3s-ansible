@@ -19,5 +19,5 @@
   systemd:
     name: k3s-agent
     daemon_reload: "{{ 'yes' if k3s_agent_service.changed else 'no' }}"
-    state: "{{ 'restarted' if k3s_agent_service.changed else 'started' }}"
+    state: "{{ 'restarted' if k3s_agent_service.changed or k3s_binary_changed else 'started' }}"
     enabled: yes

@@ -73,7 +73,7 @@
   systemd:
     name: k3s
     daemon_reload: "{{ 'yes' if k3s_service.changed else 'no' }}"
-    state: "{{ 'restarted' if k3s_service.changed else 'started' }}"
+    state: "{{ 'restarted' if k3s_service.changed or k3s_binary_changed else 'started' }}"
     enabled: yes
 
 - name: Wait for node-token

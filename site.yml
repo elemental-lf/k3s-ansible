@@ -12,6 +12,7 @@
   any_errors_fatal: true
   gather_facts: yes
   become: yes
+  serial: 1
   roles:
     - role: k3s/server
 

@@ -35,11 +35,11 @@
 
 - name: Verification
   block:
-    - name: Verify that all nodes actually joined (check k3s-init.service if this fails)
+    - name: Verify this host actually joined (check k3s-init.service if this fails)
       command:
         cmd: k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
       register: nodes
-      until: nodes.rc == 0 and (nodes.stdout.split() | length) == (groups['server'] | length)
+      until: nodes.rc == 0 and nodes.stdout.find(ansible_nodename) != -1
       retries: 20
       delay: 10
       changed_when: false
@@ -79,18 +79,15 @@
 - name: Wait for node-token
   wait_for:
     path: /var/lib/rancher/k3s/server/node-token
-  run_once: true
 
 - name: Read node-token from server
   slurp:
     src: /var/lib/rancher/k3s/server/node-token
   register: node_token
-  run_once: true
 
 - name: Store server node-token
   set_fact:
     token: "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
-  run_once: true
 
 - name: Create directory .kube
   file:

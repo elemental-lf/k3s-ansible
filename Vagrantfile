@@ -22,7 +22,7 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.define "mgmt" do |mgmt|
-    mgmt.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: ".git/"
+    mgmt.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: [".git/", "tf/example/*.tfstate", "tf/example/k3s-ansible"]
     mgmt.ssh.forward_agent = true
 
     mgmt.vm.hostname = "mgmt"

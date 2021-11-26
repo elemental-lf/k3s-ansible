@@ -1,5 +1,5 @@
 ---
-k3s_version: v1.22.2+k3s2
+k3s_version: v1.22.3+k3s1
 ansible_user: debian
 
 # Directory where the k3s systemd service file will be installed

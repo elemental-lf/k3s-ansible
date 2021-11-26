@@ -4,6 +4,8 @@
 NUM_SERVERS = 3
 NUM_AGENTS = 2
 
+TERRAFORM_VERSION = "1.0.3"
+
 IP_MGMT = "192.168.177.10"
 IP_SERVER_BASE = "192.168.177.1"
 IP_AGENT_BASE = "192.168.177.2"
@@ -32,15 +34,32 @@ Vagrant.configure("2") do |config|
 
     mgmt.vm.provision "shell" do |s|
       ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
-      s.inline = <<-SHELL
-            echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+      s.inline = <<~SHELL
+        echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
       SHELL
     end
 
     mgmt.vm.provision "shell" do |s|
-      s.inline = <<-SHELL
-          dnf install -y epel-release
-          dnf install -y ansible --setopt=install_weak_deps=False
+      s.inline = <<~SHELL
+        set -euo pipefail
+      
+        cat >/etc/profile.d/path_user_local_bin.sh <<EOF
+        PATH=/usr/local/bin:$PATH
+        export PATH
+        EOF
+      
+        # Install Ansible
+        dnf install -y epel-release
+        dnf install -y ansible --setopt=install_weak_deps=False
+      
+        # Install Terraform
+        dnf install -y unzip --setopt=install_weak_deps=False
+        cd /usr/local/bin
+        curl -sSL -o terraform.zip https://releases.hashicorp.com/terraform/#{TERRAFORM_VERSION}/terraform_#{TERRAFORM_VERSION}_linux_amd64.zip
+        unzip -o terraform.zip
+        rm terraform.zip
+        # This augments ~/.bashrc
+        sudo -u vagrant /usr/local/bin/terraform -install-autocomplete
       SHELL
     end
   end
@@ -58,7 +77,7 @@ Vagrant.configure("2") do |config|
 
       server.vm.provision "shell" do |s|
         ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
-        s.inline = <<-SHELL
+        s.inline = <<~SHELL
           echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
         SHELL
       end
@@ -84,7 +103,7 @@ Vagrant.configure("2") do |config|
 
       agent.vm.provision "shell" do |s|
         ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
-        s.inline = <<-SHELL
+        s.inline = <<~SHELL
           echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
         SHELL
       end

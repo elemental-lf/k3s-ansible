@@ -139,6 +139,23 @@
       when:
         - not kubeconfig_stat.stat.exists or (kubeconfig_stat.stat.checksum is defined and
             kubeconfig_stat.stat.checksum != kubeconfig_ansible_stat.stat.checksum)
+            
+    - name: Fetch kubeconfig
+      fetch:
+        src: "~{{ ansible_user }}/.kube/config"
+        dest: "{{ kubeconfig_path }}"
+        flat: true
+      run_once: true
+      when: kubeconfig_path is defined
+
+    - name: Set mode on kubeconfig
+      local_action:
+        module: file
+        path: "{{ kubeconfig_path }}"
+        mode: "u=rw,g=r,o="
+      run_once: true
+      when: kubeconfig_path is defined
+      
   when: not ansible_check_mode
 
 # The file module will fail if the source of the symlink doesn't exist even when running in check mode.

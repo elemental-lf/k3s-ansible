@@ -2,3 +2,6 @@
 *.iml
 .idea
 .vagrant
+.terraform*
+*.tfstate
+tf/example/k3s-ansible

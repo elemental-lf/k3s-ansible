@@ -4,6 +4,12 @@ systemd_dir: /etc/systemd/system
 
 keepalived_enabled: false
 
+# If you define multiple servers you should be providing a loadbalanced
+# apiserver endpoint to all servers here.  This default value is only
+# suitable for a non-HA setup, if used in a HA setup, it will not protect
+# you if the first node fails.
+apiserver_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
+
 extra_server_args: ""
 
 server_init_args: >-

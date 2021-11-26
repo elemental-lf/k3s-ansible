@@ -1,0 +1,36 @@
+locals {
+  k3s_config_yaml           = {
+    ansible_user            = var.ansible_user
+    systemd_dir             = var.systemd_dir
+    apiserver_endpoint      = var.apiserver_endpoint
+    k3s_version             = var.k3s_version
+    k3s_token               = var.k3s_token != null ? var.k3s_token : random_password.k3s_token.result
+    extra_server_args       = var.extra_server_args
+    extra_agent_args        = var.extra_agent_args
+    k3s_release_channel_url = var.k3s_release_channel_url
+    k3s_release_channel     = var.k3s_release_channel
+    k3s_download_url        = var.k3s_download_url
+    rancher_rpm_site        = var.rancher_rpm_site
+    rancher_rpm_channel     = var.rancher_rpm_channel
+    k3s_selinux_enable      = var.k3s_selinux_enable
+    keepalived_enabled      = var.keepalived_enabled
+  }
+  # So that we will only render non-default values in the input to Ansible
+  k3s_config_yaml_non_default = {for k, v in local.k3s_config_yaml : k => v if v != null}
+
+  hosts_ini = <<-EOT
+    [server]
+    %{ for server in var.servers ~}
+    ${~server}
+    %{ endfor ~}
+
+    [agent]
+    %{ for agent in var.agents ~}
+    ${~agent}
+    %{ endfor ~}
+
+    [k3s_cluster:children]
+    server
+    agent
+  EOT
+}

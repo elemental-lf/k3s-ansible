@@ -13,4 +13,5 @@ module "k3s_ansible" {
 
   ansible_user        = "vagrant"
   k3s_release_channel = "v1.22"
+  fetch_kubeconfig    = true
 }

@@ -36,4 +36,9 @@ locals {
     server
     agent
   EOT
+
+  full_path_warning = <<-EOT
+  # This file may contain full paths which are not stable and may change
+  # according to the execution context of the user calling Terraform.
+EOT
 }

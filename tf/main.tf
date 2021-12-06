@@ -4,12 +4,12 @@ resource "random_password" "k3s_token" {
 }
 
 resource "local_file" "hosts_ini" {
-  content  = local.hosts_ini
+  content  = format("%s%s", local.full_path_warning, local.hosts_ini)
   filename = "${path.cwd}/k3s-ansible/${module.this.id}/hosts.ini"
 }
 
 resource "local_file" "k3s_config_yaml" {
-  content  = yamlencode(local.k3s_config_yaml_non_default)
+  content  = format("%s%s", local.full_path_warning, yamlencode(local.k3s_config_yaml_non_default))
   filename = "${path.cwd}/k3s-ansible/${module.this.id}/k3s-config.yaml"
 }
 

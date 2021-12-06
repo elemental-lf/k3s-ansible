@@ -53,7 +53,7 @@ Vagrant.configure("2") do |config|
         dnf install -y ansible --setopt=install_weak_deps=False
       
         # Install Terraform
-        dnf install -y unzip --setopt=install_weak_deps=False
+        dnf install -y unzip git --setopt=install_weak_deps=False
         cd /usr/local/bin
         curl -sSL -o terraform.zip https://releases.hashicorp.com/terraform/#{TERRAFORM_VERSION}/terraform_#{TERRAFORM_VERSION}_linux_amd64.zip
         unzip -o terraform.zip

@@ -19,15 +19,17 @@ locals {
   # So that we will only render non-default values in the input to Ansible
   k3s_config_yaml_non_default = {for k, v in local.k3s_config_yaml : k => v if v != null}
 
+  ansible_ssh_private_key_file = var.ansible_ssh_private_key_file
+
   hosts_ini = <<-EOT
     [server]
     %{ for server in var.servers ~}
-    ${~server}
+    ${~server}%{ if local.ansible_ssh_private_key_file != null } ansible_ssh_private_key_file="${local.ansible_ssh_private_key_file}"%{ endif }
     %{ endfor ~}
 
     [agent]
     %{ for agent in var.agents ~}
-    ${~agent}
+    ${~agent}%{ if local.ansible_ssh_private_key_file != null } ansible_ssh_private_key_file="${local.ansible_ssh_private_key_file}"%{ endif }
     %{ endfor ~}
 
     [k3s_cluster:children]

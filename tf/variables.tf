@@ -19,6 +19,11 @@ variable "ansible_user" {
   default = null
 }
 
+variable "ansible_ssh_private_key_file" {
+  type    = string
+  default = null
+}
+
 variable "systemd_dir" {
   type    = string
   default = null

@@ -14,7 +14,7 @@ locals {
     rancher_rpm_channel     = var.rancher_rpm_channel
     k3s_selinux_enable      = var.k3s_selinux_enable
     keepalived_enabled      = var.keepalived_enabled
-    kubeconfig_path         = var.fetch_kubeconfig ? "${path.cwd}/k3s-ansible/${module.this.id}/kubeconfig.yaml" : null
+    kubeconfig_path         = var.fetch_kubeconfig ? "${path.root}/k3s-ansible/${module.this.id}/kubeconfig.yaml" : null
   }
   # So that we will only render non-default values in the input to Ansible
   k3s_config_yaml_non_default = {for k, v in local.k3s_config_yaml : k => v if v != null}
@@ -36,9 +36,4 @@ locals {
     server
     agent
   EOT
-
-  full_path_warning = <<-EOT
-  # This file may contain full paths which are not stable and may change
-  # according to the execution context of the user calling Terraform.
-EOT
 }

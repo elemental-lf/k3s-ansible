@@ -143,7 +143,7 @@
     - name: Fetch kubeconfig
       fetch:
         src: "~{{ ansible_user }}/.kube/config"
-        dest: "{{ kubeconfig_path }}"
+        dest: "{{ output_base_path }}/{{ kubeconfig_path }}"
         flat: true
       run_once: true
       when: kubeconfig_path is defined
@@ -151,7 +151,7 @@
     - name: Set mode on kubeconfig
       local_action:
         module: file
-        path: "{{ kubeconfig_path }}"
+        path: "{{ output_base_path }}/{{ kubeconfig_path }}"
         mode: "u=rw,g=r,o="
       run_once: true
       when: kubeconfig_path is defined

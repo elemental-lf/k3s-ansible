@@ -1,4 +1,6 @@
 ---
+- set_fact:
+    output_base_path: "{{ lookup('env', 'OUTPUT_BASE_PATH') | default('/', True) }}"
 
 - name: Install keepalived
   import_tasks: keepalived.yml

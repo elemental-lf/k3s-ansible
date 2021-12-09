@@ -89,6 +89,11 @@ variable "keepalived_enabled" {
   default = null
 }
 
+variable "keepalived_interface" {
+  type    = string
+  default = null
+}
+
 variable "fetch_kubeconfig" {
   type    = bool
   default = false

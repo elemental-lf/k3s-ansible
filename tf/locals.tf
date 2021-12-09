@@ -14,6 +14,7 @@ locals {
     rancher_rpm_channel     = var.rancher_rpm_channel
     k3s_selinux_enable      = var.k3s_selinux_enable
     keepalived_enabled      = var.keepalived_enabled
+    keepalived_interface    = var.keepalived_interface
     kubeconfig_path         = var.fetch_kubeconfig ? "${path.root}/k3s-ansible/${module.this.id}/kubeconfig.yaml" : null
   }
   # So that we will only render non-default values in the input to Ansible

@@ -1,0 +1,16 @@
+module keepalived-extras 1.0;
+
+require {
+	type keepalived_t;
+	type init_t;
+	type container_unit_file_t;
+	type systemd_systemctl_exec_t;
+	class file { execute execute_no_trans getattr map open read };
+	class unix_stream_socket connectto;
+	class service status;
+}
+
+#============= keepalived_t ==============
+allow keepalived_t container_unit_file_t:service status;
+allow keepalived_t init_t:unix_stream_socket connectto;
+allow keepalived_t systemd_systemctl_exec_t:file { execute execute_no_trans getattr map open read };

@@ -5,6 +5,40 @@
     name: keepalived  # Seems to be the same in EL and Debian based distros
     state: present
 
+- block:
+  - name: determine if SELinux keepalived-extras security module is already loaded
+    shell: /sbin/semodule -lstandard | /bin/grep -q keepalived-extras
+    register: keepalived_selinux_module_exists
+    ignore_errors: True
+    check_mode: False
+    changed_when: False
+
+  - name: uninstall SELinux keepalived-extras security module (SELinux in K3s is disabled)
+    command: /sbin/semodule -r keepalived-extras
+    when: k3s_selinux_state == 'disabled' and keepalived_selinux_module_exists is succeeded
+
+  - block:
+      - set_fact:
+          keepalived_selinux_te: "/etc/keepalived/keepalived-extras.te"
+          keepalived_selinux_mod: "/etc/keepalived/keepalived-extras.mod"
+          keepalived_selinux_pp: "/etc/keepalived/keepalived-extras.pp"
+
+      - name: copy SELinux keepalived-extras type enforcement file
+        copy:
+          src: files/keepalived-extras.te
+          dest: "{{ keepalived_selinux_te }}"
+
+      - name: compile SELinux keepalived-extras policy module from type enforcement file
+        command: "/bin/checkmodule -M -m '{{ keepalived_selinux_te }}' -o '{{ keepalived_selinux_mod }}'"
+
+      - name: package SELinux keepalived-extras policy module
+        command: "/bin/semodule_package -m '{{ keepalived_selinux_mod }}' -o '{{ keepalived_selinux_pp }}'"
+
+      - name: load SELinux keepalived-extras policy module
+        command: "/sbin/semodule -i '{{ keepalived_selinux_pp }}'"
+    when: k3s_selinux_state == 'enforcing' and keepalived_selinux_module_exists is failed
+  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux','RedHat']
+
 - name: Ensure ipv4 nonlocal binding is enabled
   sysctl:
     name: net.ipv4.ip_nonlocal_bind

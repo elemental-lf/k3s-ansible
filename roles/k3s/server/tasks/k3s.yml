@@ -152,7 +152,7 @@
       local_action:
         module: file
         path: "{{ output_base_path }}/{{ kubeconfig_path }}"
-        mode: "u=rw,g=r,o="
+        mode: "u=rw,g=,o="
       run_once: true
       when: kubeconfig_path is defined
       

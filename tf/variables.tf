@@ -54,6 +54,11 @@ variable "extra_agent_args" {
   default = null
 }
 
+variable "extra_files" {
+  type    = map(map(string))
+  default = {}
+}
+
 variable "k3s_release_channel_url" {
   type    = string
   default = null

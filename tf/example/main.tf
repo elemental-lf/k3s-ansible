@@ -14,4 +14,11 @@ module "k3s_ansible" {
   ansible_user        = "vagrant"
   k3s_release_channel = "v1.22"
   fetch_kubeconfig    = true
+
+  extra_files = {
+    "/etc/test123" = {
+      content = "test123content"
+      mode = "0444"
+    }
+  }
 }

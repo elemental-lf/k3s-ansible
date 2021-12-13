@@ -3,3 +3,5 @@ rancher_rpm_site: rpm.rancher.io
 rancher_rpm_channel: stable
 
 k3s_selinux_enable: false
+
+extra_files: {}

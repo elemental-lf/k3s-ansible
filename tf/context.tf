@@ -29,7 +29,7 @@ module "this" {
   tenant              = var.tenant
   environment         = var.environment
   stage               = var.stage
-  name                = var.name
+  name                = local.name
   delimiter           = var.delimiter
   attributes          = var.attributes
   tags                = var.tags
@@ -126,7 +126,7 @@ variable "stage" {
 
 variable "name" {
   type        = string
-  default     = "cluster"
+  default     = null
   description = <<-EOT
     ID element. Usually the component or solution name, e.g. 'app' or 'jenkins'.
     This is the only ID element not also included as a `tag`.

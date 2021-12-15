@@ -18,6 +18,7 @@ locals {
     k3s_selinux_enable      = var.k3s_selinux_enable
     keepalived_enabled      = var.keepalived_enabled
     keepalived_interface    = var.keepalived_interface
+    keepalived_vrrp_id      = var.keepalived_vrrp_id
     kubeconfig_path         = var.fetch_kubeconfig ? "${path.root}/k3s-ansible/${module.this.id}/kubeconfig.yaml" : null
   }
   # So that we will only render non-default values in the input to Ansible

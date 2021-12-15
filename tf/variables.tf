@@ -99,6 +99,11 @@ variable "keepalived_interface" {
   default = null
 }
 
+variable "keepalived_vrrp_id" {
+  type    = number
+  default = null
+}
+
 variable "fetch_kubeconfig" {
   type    = bool
   default = false

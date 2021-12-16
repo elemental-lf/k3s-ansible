@@ -149,3 +149,9 @@
     mode: "{{ item.value.mode | default('0600') }}"
     dest: "{{ item.key }}"
   loop: "{{ extra_files | dict2items }}"
+
+- name: Create /var/log/journal to enable persistent logging
+  file:
+    path: /var/log/journal
+    state: directory
+    mode: "0755"

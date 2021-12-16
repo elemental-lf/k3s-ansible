@@ -1,5 +1,5 @@
 locals {
-  name                      = var.context == null && var.name == null ? "cluster" : var.name
+  name                      = var.context.name == null && var.name == null ? "cluster" : var.name
 
   k3s_config_yaml           = {
     ansible_user            = var.ansible_user

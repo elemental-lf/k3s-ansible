@@ -1,0 +1,57 @@
+- name: Enable IPv4 forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
+    reload: yes
+
+- name: Enable IPv6 forwarding
+  sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: "1"
+    state: present
+    reload: yes
+  when: ansible_all_ipv6_addresses | length > 0
+
+# Currently, kubectl isn't designed with swap space in mind.
+# But this will change, see https://github.com/kubernetes/enhancements/issues/2400.
+- name: Disable swap devices and files in /etc/fstab (if any)
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\s+swap\s+.*)$'
+    replace: '# \1'
+
+- name: Check for active swap devices or files
+  command: swapon --show --noheadings
+  register: swapon_show
+  changed_when: false
+  check_mode: no
+
+- name: Disable active swap devices and files (if any)
+  command: swapoff --all
+  changed_when: true
+  when: swapon_show.stdout_lines | length > 0
+
+- name: Create directories for extra files
+  file:
+    path: "{{ item.key | dirname }}"
+    owner: "{{ item.value.directoryOwner | default(omit) }}"
+    group: "{{ item.value.directoryGroup | default(omit) }}"
+    mode: "{{ item.value.directoryMode | default(omit) }}"
+    state: directory
+  loop: "{{ extra_files | dict2items }}"
+
+- name: Deploy extra files
+  copy:
+    content:  "{{ item.value.content }}"
+    owner: "{{ item.value.owner | default(omit) }}"
+    group: "{{ item.value.group | default(omit) }}"
+    mode: "{{ item.value.mode | default('0600') }}"
+    dest: "{{ item.key }}"
+  loop: "{{ extra_files | dict2items }}"
+
+- name: Create /var/log/journal to enable persistent logging
+  file:
+    path: /var/log/journal
+    state: directory
+    mode: "0755"

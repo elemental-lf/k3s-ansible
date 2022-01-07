@@ -2,11 +2,11 @@
 - import_tasks: selinux.yaml
 
 - import_tasks: rhel.yaml
-  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux', 'RedHat']
+  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux', 'RedHat', 'AlmaLinux']
 
 - import_tasks: rhel-8.yaml
   when:
-    - ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux', 'RedHat']
+    - ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux', 'RedHat', 'AlmaLinux']
     - ansible_distribution_major_version == '8'
 
 - import_tasks: common.yaml

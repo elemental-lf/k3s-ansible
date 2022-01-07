@@ -11,7 +11,7 @@ IP_SERVER_BASE = "192.168.177.1"
 IP_AGENT_BASE = "192.168.177.2"
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "centos/8"
+  config.vm.box = ENV["VAGRANT_BOX"] ? ENV["VAGRANT_BOX"] : "centos/8"
 
   config.vm.provider :libvirt do |libvirt|
     libvirt.cpu_mode = 'host-passthrough'

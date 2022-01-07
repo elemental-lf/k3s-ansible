@@ -46,7 +46,7 @@
         k3s_selinux_state: 'enforcing'
   when:
     - k3s_selinux_enable
-    - ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux','RedHat']
+    - ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux', 'RedHat']
 
 - name: Set SELinux state
   selinux:
@@ -62,7 +62,22 @@
     masked: yes
   # firewalld might not be installed
   failed_when: false
-  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux','RedHat']
+  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux', 'RedHat']
+
+# iptables on these distributions is based on nftables and current versions
+# have a bug where duplicate rules are produced. Remove iptables completely
+# so that K3s falls back to its own packaged version.
+- name: Remove buggy iptables and its dependencies
+  yum:
+    name:
+      - iptables
+      - iptables-ebtables
+      - firewalld
+      - firewalld-filesystem
+    state: absent
+  when:
+   - ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux', 'RedHat']
+   - ansible_distribution_major_version == '8'
 
 - name: Enable IPv4 forwarding
   sysctl:
@@ -84,13 +99,13 @@
     content: "br_netfilter"
     dest: /etc/modules-load.d/br_netfilter.conf
     mode: "u=rw,g=,o="
-  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux','RedHat']
+  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux', 'RedHat']
 
 - name: Load br_netfilter
   modprobe:
     name: br_netfilter
     state: present
-  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux','RedHat']
+  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux', 'RedHat']
 
 - name: Set bridge-nf-call-iptables (just to be sure)
   sysctl:
@@ -111,7 +126,7 @@
     insertafter: EOF
     path: /etc/sudoers
     validate: 'visudo -cf %s'
-  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux','RedHat']
+  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux', 'RedHat']
 
 # Currently, kubectl isn't designed with swap space in mind.
 # But this will change, see https://github.com/kubernetes/enhancements/issues/2400.

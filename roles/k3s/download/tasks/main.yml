@@ -1,4 +1,34 @@
 ---
+# Determine architecture and suffix
+- name: Check for amd64 architecture
+  set_fact:
+    k3s_arch: "amd64"
+    k3s_suffix: ""
+  when: ansible_facts.architecture == "x86_64" or
+        ansible_facts.architecture == "amd64"
+
+- name: Check for arm64 architecture
+  set_fact:
+    k3s_arch: "arm64"
+    k3s_suffix: "-arm64"
+  when:
+    - ( ansible_facts.architecture is search("arm") and
+        ansible_facts.userspace_bits == "64" ) or
+      ansible_facts.architecture is search("aarch64")
+
+- name: Check for arm architecture
+  set_fact:
+    k3s_arch: "arm"
+    k3s_suffix: "-armhf"
+  when:
+    - ansible_facts.architecture is search("arm")
+    - ansible_facts.userspace_bits == "32"
+
+- name: Skip if architecture ({{ ansible_facts.architecture }}) is supported
+  fail:
+    msg: "This host does not have a supported architecture ({{ ansible_facts.architecture }})."
+  when: k3s_arch is not defined
+
 - name: Determine latest K3s version in channel {{ k3s_release_channel }}
   uri:
     url: "{{ k3s_release_channel_url }}/{{ k3s_release_channel }}"
@@ -7,19 +37,50 @@
     force: true
     return_content: false
   register: uri_k3s_release_channel_url
-  when: k3s_version == ''
+  when: k3s_version == "" and k3s_commit == ""
   check_mode: no
 
-- set_fact:
-    effective_k3s_version: "{{ uri_k3s_release_channel_url.url.split('/')[-1] }}"
+# k3s_effective_version: version we're going to download and install
+# k3s_match_version: search string in k3s --version output
+- block:
+    - set_fact:
+        k3s_effective_version: "{{ uri_k3s_release_channel_url.url.split('/')[-1] }}"
+        k3s_match_version: "{{ uri_k3s_release_channel_url.url.split('/')[-1] }}"
+    - set_fact:
+        k3s_binary_url: "{{ k3s_github_download_url }}/{{ k3s_effective_version }}/k3s"
+        k3s_hash_url: "{{ k3s_github_download_url }}/{{ k3s_effective_version }}/sha256sum-{{ k3s_arch }}.txt"
   when: uri_k3s_release_channel_url is not skipped
 
-- set_fact:
-    effective_k3s_version: "{{ k3s_version }}"
-  when: uri_k3s_release_channel_url is skipped
+- block:
+    - set_fact:
+        k3s_effective_version: "{{ k3s_version }}"
+        k3s_match_version: "{{ k3s_version }}"
+    - set_fact:
+        k3s_binary_url: "{{ k3s_github_download_url }}/{{ k3s_version }}/k3s"
+        k3s_hash_url: "{{ k3s_github_download_url }}/{{ k3s_version }}/sha256sum-{{ k3s_arch }}.txt"
+  when: uri_k3s_release_channel_url is skipped and k3s_version != "" and k3s_commit == ""
+
+- block:
+  - set_fact:
+      k3s_effective_version: "{{ k3s_commit }}"
+      # k3s --version includes the first eight digits of the commit hash
+      k3s_match_version: "{{ k3s_commit[:8] }}"
+  - set_fact:
+      k3s_binary_url: "{{ k3s_google_download_url }}/k3s{{ k3s_suffix }}-{{ k3s_commit }}"
+      # Validating the checksum won't work as get_url searches for k3s{{ k3s_suffix }}-{{ k3s_commit }} and the
+      # checksum file only mentions k3s.
+      # k3s_hash_url:   "{{ k3s_google_download_url }}/k3s{{ k3s_suffix }}-{{ k3s_commit }}.sha256sum"
+      k3s_hash_url: ""
+  when: uri_k3s_release_channel_url is skipped and k3s_commit != ""
 
 - debug:
-    var: effective_k3s_version
+    var: k3s_effective_version
+
+- debug:
+    var: k3s_binary_url
+
+- debug:
+    var: k3s_hash_url
 
 - name: Check if k3s binary is present
   stat:
@@ -40,43 +101,26 @@
 - block:
     - set_fact:
         k3s_binary_changed: true
-        k3s_bin_download_path: "/usr/local/bin/k3s.{{ effective_k3s_version }}"
+        k3s_bin_download_path: "/usr/local/bin/k3s.{{ k3s_effective_version }}"
 
-    - name: Download k3s binary x64
+    - name: Download k3s binary
       get_url:
-        url: "{{ k3s_download_url }}/{{ effective_k3s_version }}/k3s"
-        checksum: sha256:{{ k3s_download_url }}/{{ effective_k3s_version }}/sha256sum-amd64.txt
+        url: "{{ k3s_binary_url }}"
+        checksum: "sha256:{{ k3s_hash_url }}"
         dest: "{{ k3s_bin_download_path }}"
         owner: root
         group: root
         mode: 0755
-      when:
-        - ansible_facts.architecture == "x86_64"
+      when: k3s_hash_url != ""
 
-    - name: Download k3s binary arm64
+    - name: Download k3s binary
       get_url:
-        url: "{{ k3s_download_url }}/{{ effective_k3s_version }}/k3s-arm64"
-        checksum: sha256:{{ k3s_download_url }}/{{ effective_k3s_version }}/sha256sum-arm64.txt
+        url: "{{ k3s_binary_url }}"
         dest: "{{ k3s_bin_download_path }}"
         owner: root
         group: root
         mode: 0755
-      when:
-        - ( ansible_facts.architecture is search("arm") and
-            ansible_facts.userspace_bits == "64" ) or
-          ansible_facts.architecture is search("aarch64")
-
-    - name: Download k3s binary armhf
-      get_url:
-        url: "{{ k3s_download_url }}/{{ effective_k3s_version }}/k3s-armhf"
-        checksum: sha256:{{ k3s_download_url }}/{{ effective_k3s_version }}/sha256sum-arm.txt
-        dest: "{{ k3s_bin_download_path }}"
-        owner: root
-        group: root
-        mode: 0755
-      when:
-        - ansible_facts.architecture is search("arm")
-        - ansible_facts.userspace_bits == "32"
+      when: k3s_hash_url == ""
   rescue:
     - name: Remove downloaded k3s binary (if any)
       file:
@@ -88,4 +132,4 @@
       fail:
         msg: Download of k3s binary failed
   when:
-   - not stat_k3s_bin.stat.exists or (command_ks3_version.stdout is defined and (command_ks3_version.stdout.find(effective_k3s_version) == -1))
+   - not stat_k3s_bin.stat.exists or (command_ks3_version.stdout is defined and (command_ks3_version.stdout.find(k3s_match_version) == -1))

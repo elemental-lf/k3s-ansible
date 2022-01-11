@@ -6,6 +6,11 @@
   changed_when: true
   when: k3s_binary_changed
 
+- name: Ensure that no environment files exist for service k3s-agent
+  file:
+    path: /etc/systemd/system/k3s-agent.service.env
+    state: absent
+
 - name: Copy K3s service file
   register: k3s_agent_service
   template:

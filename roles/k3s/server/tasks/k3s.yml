@@ -6,6 +6,11 @@
   changed_when: true
   when: k3s_binary_changed
 
+- name: Ensure that no environment files exist for service k3s
+  file:
+    path: /etc/systemd/system/k3s.service.env
+    state: absent
+
 - name: Clean previous runs of k3s-init (stop service)
   systemd:
     name: k3s-init

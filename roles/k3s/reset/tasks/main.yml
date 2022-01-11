@@ -71,6 +71,8 @@
     - /usr/local/bin/kubectl
     - "{{ systemd_dir }}/k3s.service"
     - "{{ systemd_dir }}/k3s-agent.service"
+    - "{{ systemd_dir }}/k3s.env"
+    - "{{ systemd_dir }}/k3s-agent.env"
     - /etc/rancher/k3s
     - /var/lib/kubelet
     - /var/lib/rancher/k3s
@@ -87,3 +89,9 @@
 - name: daemon_reload
   systemd:
     daemon_reload: yes
+
+- name: Remove ~{{ ansible_user }}/.kube directory
+  file:
+    path: "~{{ ansible_user }}/.kube"
+    state: absent
+  when: inventory_hostname in groups['server']

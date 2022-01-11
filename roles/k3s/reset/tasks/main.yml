@@ -86,7 +86,7 @@
     name: k3s-selinux
     state: absent
 
-- name: daemon_reload
+- name: Reload systemd configuration
   systemd:
     daemon_reload: yes
 

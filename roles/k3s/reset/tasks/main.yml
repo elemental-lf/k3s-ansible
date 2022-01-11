@@ -71,8 +71,8 @@
     - /usr/local/bin/kubectl
     - "{{ systemd_dir }}/k3s.service"
     - "{{ systemd_dir }}/k3s-agent.service"
-    - "{{ systemd_dir }}/k3s.env"
-    - "{{ systemd_dir }}/k3s-agent.env"
+    - "{{ systemd_dir }}/k3s.service.env"
+    - "{{ systemd_dir }}/k3s-agent.service.env"
     - /etc/rancher/k3s
     - /var/lib/kubelet
     - /var/lib/rancher/k3s

@@ -59,6 +59,11 @@ variable "extra_files" {
   default = {}
 }
 
+variable "datastore_endpoint" {
+  type    = string
+  default = null
+}
+
 variable "k3s_release_channel_url" {
   type    = string
   default = null

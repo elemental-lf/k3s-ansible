@@ -10,6 +10,7 @@ locals {
     extra_server_args       = var.extra_server_args
     extra_agent_args        = var.extra_agent_args
     extra_files             = var.extra_files
+    datastore_endpoint      = var.datastore_endpoint
     k3s_release_channel_url = var.k3s_release_channel_url
     k3s_release_channel     = var.k3s_release_channel
     k3s_download_url        = var.k3s_download_url

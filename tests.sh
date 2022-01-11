@@ -38,14 +38,16 @@ export VAGRANT_BOX
 for VAGRANT_BOX in centos/8 almalinux/8; do
   for scenario in single-server control-plane-ha keepalived-ha; do
     for k3s_selinux_enable in true false; do
-      vagrant up
-      run_test site.yml "${scenario}" 1 -ek3s_version=v1.21.5+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}"
-      run_test site.yml "${scenario}" 2 -ek3s_version=v1.21.5+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}"
-      run_test site.yml "${scenario}" 3 -ek3s_version=v1.21.5+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}"
-      run_test site.yml "${scenario}" 3 -ek3s_version=v1.22.2+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}"
-      run_test site.yml "${scenario}" 3 -ek3s_version="" -ek3s_release_channel=v1.22 -ek3s_selinux_enable="${k3s_selinux_enable}"
-      run_test reset.yml "${scenario}" 3
-      vagrant destroy --force
+      for datastore_endpoint in '' 'mysql://k3s:secret@tcp\(192.168.177.10\)/k3s'; do
+        vagrant up
+        run_test site.yml "${scenario}" 1 -ek3s_version=v1.21.5+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
+        run_test site.yml "${scenario}" 2 -ek3s_version=v1.21.5+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
+        run_test site.yml "${scenario}" 3 -ek3s_version=v1.21.5+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
+        run_test site.yml "${scenario}" 3 -ek3s_version=v1.22.2+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
+        run_test site.yml "${scenario}" 3 -ek3s_version="" -ek3s_release_channel=v1.22 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
+        run_test reset.yml "${scenario}" 3
+        vagrant destroy --force
+      done
     done
   done
 done

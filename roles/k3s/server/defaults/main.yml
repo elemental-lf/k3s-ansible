@@ -1,13 +1,4 @@
 ---
-extra_server_args: ""
+datastore_endpoint: ""
 
-server_init_args: >-
-  {% if groups['server'] | length > 1 %}
-    {% if ansible_host == hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) %}
-      --cluster-init
-    {% else %}
-      --server https://{{ hostvars[groups['server'][0]]['ansible_host'] | default(hostvars[groups['server'][0]]['ansible_default_ipv4']['address']) | default(hostvars[groups['server'][0]]['ansible_all_ipv4_addresses'][0]) | default(groups['server'][0]) }}:6443
-    {% endif %}
-    --token {{ k3s_token }}
-  {% endif %}
-  {{ extra_server_args | default('') }}
+extra_server_args: ""

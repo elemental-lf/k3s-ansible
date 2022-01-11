@@ -24,6 +24,17 @@
 # This task will be skipped if k3s.service already exists. So the initialization will only be performed if it hasn't
 # been done yet.
 - name: Init cluster inside the transient k3s-init service
+  vars:
+    server_init_args: >-
+      {% if datastore_endpoint == "" %}
+        {% if inventory_hostname == groups['server'][0] %}
+          --cluster-init
+        {% else %}
+          --server https://{{ hostvars[groups['server'][0]]['ansible_host'] | default(hostvars[groups['server'][0]]['ansible_default_ipv4']['address']) | default(hostvars[groups['server'][0]]['ansible_all_ipv4_addresses'][0]) | default(groups['server'][0]) }}:6443
+        {% endif %}
+      {% endif %}
+      --token {{ k3s_token }}
+      {{ extra_server_args }}
   command:
     cmd: "systemd-run -p RestartSec=2 \
                       -p Restart=on-failure \

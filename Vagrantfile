@@ -60,6 +60,14 @@ Vagrant.configure("2") do |config|
         rm terraform.zip
         # This augments ~/.bashrc
         sudo -u vagrant /usr/local/bin/terraform -install-autocomplete
+
+        # Install MariaDB
+        dnf install -y mariadb mariadb-server
+        systemctl enable --now mariadb.service
+        mysql -e "CREATE DATABASE k3s;"
+        mysql -e "CREATE USER 'k3s'@'%' IDENTIFIED BY 'secret';"
+        mysql -e "GRANT ALL PRIVILEGES ON k3s.* TO 'k3s'@'%';"
+        mysql -e "FLUSH PRIVILEGES;"
       SHELL
     end
   end

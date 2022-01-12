@@ -37,9 +37,14 @@
         {% else %}
           --server https://{{ hostvars[groups['server'][0]]['ansible_host'] | default(hostvars[groups['server'][0]]['ansible_default_ipv4']['address']) | default(hostvars[groups['server'][0]]['ansible_all_ipv4_addresses'][0]) | default(groups['server'][0]) }}:6443
         {% endif %}
+      {% else %}
+        --datastore-endpoint {{ datastore_endpoint }}
       {% endif %}
       --token {{ k3s_token }}
-      {{ extra_server_args }}
+      {% for arg in extra_server_args %}
+      {{ arg }}
+      {% endfor %}
+# EOF
   command:
     cmd: "systemd-run -p RestartSec=2 \
                       -p Restart=on-failure \

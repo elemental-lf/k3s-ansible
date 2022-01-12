@@ -45,12 +45,12 @@ variable "k3s_token" {
 }
 
 variable "extra_server_args" {
-  type    = string
+  type    = list(string)
   default = null
 }
 
 variable "extra_agent_args" {
-  type    = string
+  type    = list(string)
   default = null
 }
 

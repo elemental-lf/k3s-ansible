@@ -34,6 +34,11 @@ variable "apiserver_endpoint" {
   default = null
 }
 
+variable "keepalived_apiserver_vip" {
+  type    = string
+  default = null
+}
+
 variable "k3s_version" {
   type    = string
   default = null

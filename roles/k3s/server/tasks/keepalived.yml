@@ -58,8 +58,7 @@
   set_fact:
     keepalived_vrrp_priority: '200'
     keepalived_vrrp_state: 'MASTER'
-  when:
-    - ansible_host == hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0])
+  when: inventory_hostname == groups['server']
 
 - name: Ensure keepalived service configuration template is correct
   template:

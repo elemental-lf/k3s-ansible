@@ -56,7 +56,7 @@ variable "extra_agent_args" {
 
 variable "extra_files" {
   type    = map(map(string))
-  default = {}
+  default = null
 }
 
 variable "datastore_endpoint" {

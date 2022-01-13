@@ -80,6 +80,7 @@
     - /run/flannel
     - /run/k3s
     - /etc/yum.repos.d/rancher-k3s-common.repo
+    - /etc/rancher/node/password
 
 - name: Remove k3s-selinux package
   yum:

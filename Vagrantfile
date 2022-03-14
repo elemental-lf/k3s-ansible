@@ -41,7 +41,7 @@ Vagrant.configure("2") do |config|
 
     mgmt.vm.provision "shell" do |s|
       s.inline = <<~SHELL
-        set -euo pipefail
+        set -xeuo pipefail
       
         cat >/etc/profile.d/path_user_local_bin.sh <<EOF
         PATH=/usr/local/bin:$PATH
@@ -98,6 +98,7 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell" do |s|
         ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
         s.inline = <<~SHELL
+          set -xeuo pipefail
           echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
         SHELL
       end
@@ -118,6 +119,7 @@ Vagrant.configure("2") do |config|
       agent.vm.provision "shell" do |s|
         ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
         s.inline = <<~SHELL
+          set -xeuo pipefail
           echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
         SHELL
       end

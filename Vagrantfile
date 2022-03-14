@@ -11,7 +11,7 @@ IP_SERVER_BASE = "192.168.177.1"
 IP_AGENT_BASE = "192.168.177.2"
 
 Vagrant.configure("2") do |config|
-  config.vm.box = ENV["VAGRANT_BOX"] ? ENV["VAGRANT_BOX"] : "centos/8"
+  config.vm.box = ENV["VAGRANT_BOX"] ? ENV["VAGRANT_BOX"] : "centos/stream8"
 
   config.vm.provider :libvirt do |libvirt|
     libvirt.cpu_mode = 'host-passthrough'
@@ -48,9 +48,21 @@ Vagrant.configure("2") do |config|
         export PATH
         EOF
       
-        # Install Ansible
-        dnf install -y epel-release
-        dnf install -y ansible --setopt=install_weak_deps=False
+        # Do this in subshell as os-release has some very generic variable names
+        (
+          . /usr/lib/os-release
+
+          # Install Ansible
+          dnf install -y epel-release
+          if [[ (${NAME} == "CentOS Linux" && ${VERSION_ID} == "8") || (${NAME} == "AlmaLinux" && ${VERSION_ID} == 8.*) ]]; then
+            dnf install -y ansible --setopt=install_weak_deps=False
+          elif [[ ${NAME} == "CentOS Stream" && ${VERSION_ID} == "8" ]]; then
+            dnf install -y ansible-core ansible-collection-ansible-posix ansible-collection-community-general
+          else
+            echo "Unknown distribution: ${NAME} ${VERSION}" 1>&2
+            exit 1
+          fi
+        )
       
         # Install Terraform
         dnf install -y unzip git --setopt=install_weak_deps=False

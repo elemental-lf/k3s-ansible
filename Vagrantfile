@@ -100,6 +100,9 @@ Vagrant.configure("2") do |config|
         s.inline = <<~SHELL
           set -xeuo pipefail
           echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+          # So that our keepalived config finds the interface. Applies at least to the AlmaLinux 8 box. The
+          # original CentOS 8 box used ethX. This as hacky as it gets but our tests VMs are used only once.
+          (ip link set ens5 down && ip link set ens5 name eth1 && ip link set eth1 up) || true
         SHELL
       end
     end

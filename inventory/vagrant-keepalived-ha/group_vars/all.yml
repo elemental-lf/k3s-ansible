@@ -8,3 +8,5 @@ k3s_token: "mysupersecuretoken"
 
 keepalived_enabled: true
 keepalived_interface: 'eth1'
+
+rt_enabled: true

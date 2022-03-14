@@ -3,3 +3,5 @@
 systemd_dir: /etc/systemd/system
 
 keepalived_enabled: false
+
+rt_enabled: false

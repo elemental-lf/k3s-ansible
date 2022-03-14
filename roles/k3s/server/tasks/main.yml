@@ -10,3 +10,7 @@
 
 - name: Install k3s
   import_tasks: k3s.yml
+
+- name: Enable realtime
+  import_tasks: rt.yml
+  when: rt_enabled

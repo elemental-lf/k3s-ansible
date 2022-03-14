@@ -1,0 +1,67 @@
+---
+# setting sched_rt_runtime_us to -1 disables global limit on realtime
+# threads cpu time. This might lead to the system been inaccessible
+# if rt threads consuming all cpu time, but ATM there is no better option
+# 
+# https://github.com/systemd/systemd/blob/main/README#L131-L138
+#
+#        We recommend to turn off Real-Time group scheduling in the
+#        kernel when using systemd. RT group scheduling effectively
+#        makes RT scheduling unavailable for most userspace, since it
+#        requires explicit assignment of RT budgets to each unit whose
+#        processes making use of RT. As there's no sensible way to
+#        assign these budgets automatically this cannot really be
+#        fixed, and it's best to disable group scheduling hence.
+#           CONFIG_RT_GROUP_SCHED=n
+#
+# $ grep -i CONFIG_RT_GROUP_SCHED /boot/config-4.18.0-305.3.1.el8.x86_64
+# CONFIG_RT_GROUP_SCHED=y
+#
+# https://man7.org/linux/man-pages/man7/cgroups.7.html
+#
+#    The cgroups v2 "cpu" controller and realtime threads
+#
+#       As at Linux 4.19, the cgroups v2 cpu controller does not support
+#       control of realtime threads (specifically threads scheduled under
+#       any of the policies SCHED_FIFO, SCHED_RR, described
+#       SCHED_DEADLINE; see sched(7)).  Therefore, the cpu controller can
+#       be enabled in the root cgroup only if all realtime threads are in
+#       the root cgroup.  (If there are realtime threads in nonroot
+#       cgroups, then a write(2) of the string "+cpu" to the
+#       cgroup.subtree_control file fails with the error EINVAL.)
+- name: "Ensure kernel.sched_rt_runtime_us is set to -1"
+  sysctl:
+    name: kernel.sched_rt_runtime_us
+    value: "-1"
+    sysctl_file: /etc/sysctl.d/sched_rt.conf
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: "Ensure systemd drop-in directory for k3s exists"
+  file:
+    path: /etc/systemd/system/k3s.service.d
+    mode: u=rwx,g=rx,o=rx
+    state: directory
+ 
+- name: "Copy realtime systemd drop-in for k3s"
+  copy:
+    src: k3s-rt-override.conf
+    dest: /etc/systemd/system/k3s.service.d/rt-override.conf 
+    mode: u=rw,g=r,o=r
+  notify: restart-k3s-service
+
+- block:
+    - name: "Ensure systemd drop-in directory for keepalived exists"
+      file:
+        path: /etc/systemd/system/keepalived.service.d
+        mode: u=rwx,g=rx,o=rx
+        state: directory
+
+    - name: "Copy realtime systemd drop-in for keepalived"
+      copy:
+        src: keepalived-rt-override.conf
+        dest: /etc/systemd/system/keepalived.service.d/rt-override.conf 
+        mode: u=rw,g=r,o=r
+      notify: restart-keepalived-service
+  when: keepalived_enabled

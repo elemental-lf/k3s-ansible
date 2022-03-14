@@ -81,6 +81,16 @@
     - /run/k3s
     - /etc/yum.repos.d/rancher-k3s-common.repo
     - /etc/rancher/node/password
+    
+- name: Remove realtime related files
+  file:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/systemd/system/k3s.service.d/rt-override.conf
+    - /etc/systemd/system/keepalived.service.d/rt-override.conf
+    - /etc/sysctl.d/sched_rt.conf
+  when: rt_enabled
 
 - name: Remove k3s-selinux package
   yum:

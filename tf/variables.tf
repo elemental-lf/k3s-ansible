@@ -118,3 +118,8 @@ variable "fetch_kubeconfig" {
   type    = bool
   default = false
 }
+
+variable "rt_enabled" {
+  type    = bool
+  default = false
+}

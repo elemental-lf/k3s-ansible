@@ -1,0 +1,284 @@
+---
+
+k3s_release_channel: "v1.22"
+ansible_user: vagrant
+
+apiserver_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
+k3s_token: "mysupersecuretoken"
+
+rt_enabled: true
+
+extra_server_args:
+  - "--kube-scheduler-arg='--config=/etc/rancher/k3s/scheduler-config-v1beta1.yaml'"
+  - "--disable=local-storage"
+
+extra_files:
+  "/etc/rancher/k3s/scheduler-config-v1beta1.yaml":
+    mode: "0600"
+    content: |-
+      ---
+      apiVersion: kubescheduler.config.k8s.io/v1beta1
+      kind: KubeSchedulerConfiguration
+      leaderElection:
+        leaderElect: true
+      clientConnection:
+        kubeconfig: /var/lib/rancher/k3s/server/cred/scheduler.kubeconfig
+      extenders:
+        - urlPrefix: "http://127.0.0.1:9251"
+          filterVerb: "predicate"
+          prioritizeVerb: "prioritize"
+          nodeCacheCapable: false
+          weight: 1
+          managedResources:
+            - name: "topolvm.cybozu.com/capacity"
+              ignoredByScheduler: true
+
+  "/etc/rancher/k3s/scheduler-config-v1beta2.yaml":
+    mode: "0600"
+    content: |-
+      ---
+      apiVersion: kubescheduler.config.k8s.io/v1beta2
+      kind: KubeSchedulerConfiguration
+      leaderElection:
+        leaderElect: true
+      clientConnection:
+        kubeconfig: /var/lib/rancher/k3s/server/cred/scheduler.kubeconfig
+      extenders:
+        - urlPrefix: "http://127.0.0.1:9251"
+          filterVerb: "predicate"
+          prioritizeVerb: "prioritize"
+          nodeCacheCapable: false
+          weight: 1
+          managedResources:
+            - name: "topolvm.cybozu.com/capacity"
+              ignoredByScheduler: true
+
+  "/var/lib/rancher/k3s/server/manifests/cert-manager.yaml":
+    mode: "0600"
+    content: |-
+      ---
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: cert-manager
+      ---
+      apiVersion: helm.cattle.io/v1
+      kind: HelmChart
+      metadata:
+        name: cert-manager
+        namespace: kube-system
+      spec:
+        repo: https://charts.jetstack.io
+        chart: cert-manager
+        version: 1.9.1
+        targetNamespace: cert-manager
+        bootstrap: true
+        set:
+          installCRDs: "true"
+
+  "/var/lib/rancher/k3s/server/manifests/topolvm.yaml":
+    mode: "0600"
+    content: |
+      ---
+      apiVersion: helm.cattle.io/v1
+      kind: HelmChart
+      metadata:
+        name: topolvm
+        namespace: kube-system
+      spec:
+        repo: https://topolvm.github.io/topolvm
+        chart: topolvm
+        version: 8.0.1
+        targetNamespace: kube-system
+        bootstrap: true
+        valuesContent: |-
+          image:
+            pullPolicy: IfNotPresent
+          scheduler:
+            updateStrategy:
+              rollingUpdate:
+                maxUnavailable: 1
+              type: RollingUpdate
+      
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: node-role.kubernetes.io/control-plane
+                          operator: Exists
+      
+            podDisruptionBudget:
+              enabled: false
+      
+            tolerations:
+              - key: node-role.kubernetes.io/control-plane
+                effect: NoSchedule
+              - key: node-role.kubernetes.io/master
+                effect: NoSchedule
+      
+            resources:
+              requests:
+                memory: "200Mi"
+                cpu: "200m"
+              limits:
+                memory: "200Mi"
+                cpu: "200m"
+      
+            priorityClassName: system-cluster-critical
+      
+            # scheduler.schedulerOptions -- Tune the Node scoring.
+            # ref: https://github.com/topolvm/topolvm/blob/master/deploy/README.md
+            schedulerOptions: {}
+            #  default-divisor: 1
+            #  divisors:
+            #    ssd: 1
+            #    hdd: 10
+      
+          lvmd:
+            managed: true
+      
+            deviceClasses:
+              - name: ssd
+                volume-group: data-1
+                default: true
+                spare-gb: 0
+      
+            resources:
+              requests:
+                memory: 500Mi
+                cpu: 500m
+              limits:
+                memory: 500Mi
+                cpu: 500m
+      
+            priorityClassName: system-node-critical
+      
+            tolerations:
+              - key: node-role.kubernetes.io/control-plane
+                effect: NoSchedule
+              - key: node-role.kubernetes.io/master
+                effect: NoSchedule
+      
+            # lvmd.additionalConfigs -- Define additional LVM Daemon configs if you have additional types of nodes.
+            # Please ensure nodeSelectors are non overlapping.
+            additionalConfigs: []
+            #  - tolerations: []
+            #      nodeSelector: {}
+            #      device-classes:
+            #        - name: ssd
+            #          volume-group: myvg2
+            #          default: true
+            #          spare-gb: 10
+      
+            updateStrategy:
+              type: RollingUpdate
+              rollingUpdate:
+                maxUnavailable: 1
+      
+          node:
+            metrics:
+              annotations:
+                prometheus.io/scrape: "true"
+                prometheus.io/port: metrics
+      
+            resources:
+              requests:
+                memory: 500Mi
+                cpu: 500m
+              limits:
+                memory: 500Mi
+                cpu: 500m
+      
+            priorityClassName: system-node-critical
+      
+            tolerations:
+              - key: node-role.kubernetes.io/control-plane
+                effect: NoSchedule
+              - key: node-role.kubernetes.io/master
+                effect: NoSchedule
+      
+            updateStrategy:
+              type: RollingUpdate
+              rollingUpdate:
+                maxUnavailable: 1
+      
+          controller:
+            resources:
+              requests:
+                memory: "200Mi"
+                cpu: "200m"
+              limits:
+                memory: "200Mi"
+                cpu: "200m"
+      
+            priorityClassName: system-cluster-critical
+      
+            updateStrategy:
+              type: RollingUpdate
+              rollingUpdate:
+                maxUnavailable: 1
+      
+            tolerations:
+              - key: node-role.kubernetes.io/control-plane
+                effect: NoSchedule
+              - key: node-role.kubernetes.io/master
+                effect: NoSchedule
+      
+            #nodeSelector:
+            #  node-role.kubernetes.io/control-plane: "true"
+      
+          storageClasses:
+            - name: topolvm
+              storageClass:
+                fsType: xfs
+                reclaimPolicy: Delete
+                annotations: {}
+                isDefaultClass: true
+                volumeBindingMode: WaitForFirstConsumer
+                allowVolumeExpansion: true
+                additionalParameters:
+                  "topolvm.cybozu.com/device-class": "ssd"
+      
+          podSecurityPolicy:
+            create: false
+  "/var/lib/rancher/k3s/server/manifests/mariadb.yaml":
+    mode: "0600"
+    content: |-
+      ---
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: mariadb
+        namespace: default
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: mariadb
+        template:
+          metadata:
+            labels:
+              app: mariadb
+          spec:
+            containers:
+            - name: mariadb
+              image: mariadb:latest
+              ports:
+              - containerPort: 3306
+                name: mariadb-port
+              env:
+              - name: MARIADB_ROOT_PASSWORD
+                value: "geheim"
+              volumeMounts:
+              - name: datadir
+                mountPath: /var/lib/mysql/
+        volumeClaimTemplates:
+        - metadata:
+            name: datadir
+          spec:
+            storageClassName: topolvm
+            accessModes: [ "ReadWriteOnce" ]
+            resources:
+              requests:
+                storage: 300M

@@ -103,6 +103,13 @@ Vagrant.configure("2") do |config|
           # So that our keepalived config finds the interface. Applies at least to the AlmaLinux 8 box. The
           # original CentOS 8 box used ethX. This as hacky as it gets but our tests VMs are used only once.
           (ip link set ens5 down && ip link set ens5 name eth1 && ip link set eth1 up) || true
+
+          # Setup LVM for TopoLVM
+          dnf install -y lvm2
+          dd if=/dev/zero of=/tmp/loop0.img bs=1M count=1100
+          losetup /dev/loop0 /tmp/loop0.img
+          pvcreate --force /dev/loop0
+          vgcreate data-1 /dev/loop0
         SHELL
       end
     end
@@ -124,6 +131,13 @@ Vagrant.configure("2") do |config|
         s.inline = <<~SHELL
           set -xeuo pipefail
           echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+
+          # Setup LVM for TopoLVM
+          dnf install -y lvm2
+          dd if=/dev/zero of=/tmp/loop0.img bs=1M count=1100
+          losetup /dev/loop0 /tmp/loop0.img
+          pvcreate --force /dev/loop0
+          vgcreate data-1 /dev/loop0
         SHELL
       end
     end

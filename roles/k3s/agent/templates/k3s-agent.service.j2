@@ -8,7 +8,7 @@ After=network-online.target
 WantedBy=multi-user.target
 
 [Service]
-Type=exec
+Type=notify
 EnvironmentFile=-/etc/default/%N
 EnvironmentFile=-/etc/sysconfig/%N
 EnvironmentFile=-{{ systemd_dir }}/%n.env

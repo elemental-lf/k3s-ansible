@@ -23,8 +23,6 @@
   command: systemctl reset-failed k3s-init
   failed_when: false
   changed_when: false
-  args:
-    warn: false  # The ansible systemd module does not support reset-failed
 
 # This task will be skipped if k3s.service already exists. So the initialization will only be performed if it hasn't
 # been done yet.
@@ -51,8 +49,6 @@
                       --unit=k3s-init \
                       k3s server {{ server_init_args }}"
     creates: "{{ systemd_dir }}/k3s.service"
-  args:
-    warn: false  # The ansible systemd module does not support transient units
 
 - name: Verification
   block:
@@ -78,8 +74,6 @@
       command: systemctl reset-failed k3s-init
       failed_when: false
       changed_when: false
-      args:
-        warn: false  # The ansible systemd module does not support reset-failed
 
 - name: Copy K3s service file
   register: k3s_service

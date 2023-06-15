@@ -35,7 +35,7 @@ EOF
 vagrant destroy --force
 
 export VAGRANT_BOX
-for VAGRANT_BOX in centos/stream8 almalinux/8; do
+for VAGRANT_BOX in generic/centos8s almalinux/8; do
   for scenario in single-server control-plane-ha keepalived-ha; do
     for k3s_selinux_enable in true false; do
       for datastore_endpoint in '' 'mysql://k3s:secret@tcp\(192.168.177.10\)/k3s'; do

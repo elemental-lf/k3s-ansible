@@ -80,6 +80,8 @@ Vagrant.configure("2") do |config|
         mysql -e "CREATE USER 'k3s'@'%' IDENTIFIED BY 'secret';"
         mysql -e "GRANT ALL PRIVILEGES ON k3s.* TO 'k3s'@'%';"
         mysql -e "FLUSH PRIVILEGES;"
+        type -P firewall-cmd >/dev/null && firewall-cmd --permanent --add-port=3306/tcp || true
+        type -P firewall-cmd >/dev/null && firewall-cmd --reload || true
       SHELL
     end
   end
@@ -101,7 +103,7 @@ Vagrant.configure("2") do |config|
           set -xeuo pipefail
           echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
           # So that our keepalived config finds the interface. Applies at least to the AlmaLinux 8 box. The
-          # original CentOS 8 box used ethX. This as hacky as it gets but our tests VMs are used only once.
+          # original CentOS 8 box used ethX. This as hacky as it gets but our test VMs are used only once.
           (ip link set ens5 down && ip link set ens5 name eth1 && ip link set eth1 up) || true
 
           # Setup LVM for TopoLVM

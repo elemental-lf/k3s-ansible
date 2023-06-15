@@ -40,11 +40,11 @@ for VAGRANT_BOX in generic/centos8s almalinux/8; do
     for k3s_selinux_enable in true false; do
       for datastore_endpoint in '' 'mysql://k3s:secret@tcp\(192.168.177.10\)/k3s'; do
         vagrant up
-        run_test site.yml "${scenario}" 1 -ek3s_version=v1.21.5+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
-        run_test site.yml "${scenario}" 2 -ek3s_version=v1.21.5+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
-        run_test site.yml "${scenario}" 3 -ek3s_version=v1.21.5+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
-        run_test site.yml "${scenario}" 3 -ek3s_version=v1.22.2+k3s2 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
-        run_test site.yml "${scenario}" 3 -ek3s_version="" -ek3s_release_channel=v1.22 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
+        run_test site.yml "${scenario}" 1 -ek3s_version=v1.25.10+k3s1 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
+        run_test site.yml "${scenario}" 2 -ek3s_version=v1.25.10+k3s1 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
+        run_test site.yml "${scenario}" 3 -ek3s_version=v1.25.10+k3s1 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
+        run_test site.yml "${scenario}" 3 -ek3s_version=v1.25.10+k3s1 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
+        run_test site.yml "${scenario}" 3 -ek3s_version="" -ek3s_release_channel=v1.26 -ek3s_selinux_enable="${k3s_selinux_enable}" -edatastore_endpoint="${datastore_endpoint}"
         run_test reset.yml "${scenario}" 3
         vagrant destroy --force
       done

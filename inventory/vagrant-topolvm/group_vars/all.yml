@@ -9,50 +9,9 @@ k3s_token: "mysupersecuretoken"
 rt_enabled: true
 
 extra_server_args:
-  - "--kube-scheduler-arg='--config=/etc/rancher/k3s/scheduler-config-v1beta1.yaml'"
   - "--disable=local-storage"
 
 extra_files:
-  "/etc/rancher/k3s/scheduler-config-v1beta1.yaml":
-    mode: "0600"
-    content: |-
-      ---
-      apiVersion: kubescheduler.config.k8s.io/v1beta1
-      kind: KubeSchedulerConfiguration
-      leaderElection:
-        leaderElect: true
-      clientConnection:
-        kubeconfig: /var/lib/rancher/k3s/server/cred/scheduler.kubeconfig
-      extenders:
-        - urlPrefix: "http://127.0.0.1:9251"
-          filterVerb: "predicate"
-          prioritizeVerb: "prioritize"
-          nodeCacheCapable: false
-          weight: 1
-          managedResources:
-            - name: "topolvm.cybozu.com/capacity"
-              ignoredByScheduler: true
-
-  "/etc/rancher/k3s/scheduler-config-v1beta2.yaml":
-    mode: "0600"
-    content: |-
-      ---
-      apiVersion: kubescheduler.config.k8s.io/v1beta2
-      kind: KubeSchedulerConfiguration
-      leaderElection:
-        leaderElect: true
-      clientConnection:
-        kubeconfig: /var/lib/rancher/k3s/server/cred/scheduler.kubeconfig
-      extenders:
-        - urlPrefix: "http://127.0.0.1:9251"
-          filterVerb: "predicate"
-          prioritizeVerb: "prioritize"
-          nodeCacheCapable: false
-          weight: 1
-          managedResources:
-            - name: "topolvm.cybozu.com/capacity"
-              ignoredByScheduler: true
-
   "/var/lib/rancher/k3s/server/manifests/cert-manager.yaml":
     mode: "0600"
     content: |-
@@ -88,53 +47,19 @@ extra_files:
       spec:
         repo: https://topolvm.github.io/topolvm
         chart: topolvm
-        version: 8.0.1
+        version: 11.2.1
         targetNamespace: kube-system
         bootstrap: true
         valuesContent: |-
+          # Don't change this flag without a proper migration plan! Data will be lost otherwise!
+          useLegacy: true
           image:
             pullPolicy: IfNotPresent
           scheduler:
-            updateStrategy:
-              rollingUpdate:
-                maxUnavailable: 1
-              type: RollingUpdate
-      
-            affinity:
-              nodeAffinity:
-                requiredDuringSchedulingIgnoredDuringExecution:
-                  nodeSelectorTerms:
-                    - matchExpressions:
-                        - key: node-role.kubernetes.io/control-plane
-                          operator: Exists
-      
-            podDisruptionBudget:
+            enabled: false
+          webhook:
+            podMutatingWebhook:
               enabled: false
-      
-            tolerations:
-              - key: node-role.kubernetes.io/control-plane
-                effect: NoSchedule
-              - key: node-role.kubernetes.io/master
-                effect: NoSchedule
-      
-            resources:
-              requests:
-                memory: "200Mi"
-                cpu: "200m"
-              limits:
-                memory: "200Mi"
-                cpu: "200m"
-      
-            priorityClassName: system-cluster-critical
-      
-            # scheduler.schedulerOptions -- Tune the Node scoring.
-            # ref: https://github.com/topolvm/topolvm/blob/master/deploy/README.md
-            schedulerOptions: {}
-            #  default-divisor: 1
-            #  divisors:
-            #    ssd: 1
-            #    hdd: 10
-      
           lvmd:
             managed: true
       
@@ -204,6 +129,9 @@ extra_files:
                 maxUnavailable: 1
       
           controller:
+            storageCapacityTracking:
+              enabled: true
+
             resources:
               requests:
                 memory: "200Mi"

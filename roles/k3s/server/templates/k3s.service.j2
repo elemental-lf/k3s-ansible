@@ -27,6 +27,9 @@ ExecStartPre=/bin/sh -xc '! /usr/bin/systemctl is-enabled --quiet nm-cloud-setup
 ExecStartPre=-/sbin/modprobe br_netfilter
 ExecStartPre=-/sbin/modprobe overlay
 ExecStart=/usr/local/bin/k3s server \
+{% if datastore_endpoint == "" %}
+  --server https://{{ server_apiserver_endpoint }}:6443 \
+{% endif %}
 {% for arg in extra_server_args %}
   {{ arg }} \
 {% endfor %}

@@ -41,7 +41,7 @@
         {% if inventory_hostname == groups['server'][0] %}
           --cluster-init
         {% else %}
-          --server https://{{ hostvars[groups['server'][0]]['ansible_host'] | default(hostvars[groups['server'][0]]['ansible_default_ipv4']['address']) | default(hostvars[groups['server'][0]]['ansible_all_ipv4_addresses'][0]) | default(groups['server'][0]) }}:6443
+          --server https://{{ server_apiserver_endpoint }}:6443
         {% endif %}
       {% else %}
         --datastore-endpoint {{ datastore_endpoint }}

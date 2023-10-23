@@ -11,6 +11,14 @@
     path: /etc/systemd/system/k3s-agent.service.env
     state: absent
 
+- name: Copy K3s service environment file
+  template:
+    src: "k3s-agent.service.env.j2"
+    dest: "{{ systemd_dir }}/k3s-agent.service.env"
+    owner: root
+    group: root
+    mode: 0600
+
 - name: Copy K3s service file
   register: k3s_agent_service
   template:

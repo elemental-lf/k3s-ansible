@@ -11,7 +11,7 @@ WantedBy=multi-user.target
 Type=notify
 EnvironmentFile=-/etc/default/%N
 EnvironmentFile=-/etc/sysconfig/%N
-EnvironmentFile=-{{ systemd_dir }}/%n.env
+EnvironmentFile=-{{ systemd_dir }}/k3s-agent.service.env
 KillMode=process
 Delegate=yes
 # Having non-zero Limit*s causes performance problems due to accounting overhead
@@ -30,5 +30,4 @@ ExecStart=/usr/local/bin/k3s agent \
 {%  for arg in extra_agent_args %}
   {{ arg }} \
 {% endfor %}
-  --server https://{{ apiserver_endpoint }}:6443 \
-  --token {{ hostvars[groups['server'][0]]['token'] | default(k3s_token) }}
+  --server https://{{ apiserver_endpoint }}:6443

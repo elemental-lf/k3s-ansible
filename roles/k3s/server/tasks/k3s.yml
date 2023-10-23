@@ -24,6 +24,14 @@
   failed_when: false
   changed_when: false
 
+- name: Copy K3s service environment file
+  template:
+    src: "k3s.service.env.j2"
+    dest: "{{ systemd_dir }}/k3s.service.env"
+    owner: root
+    group: root
+    mode: 0600
+
 # This task will be skipped if k3s.service already exists. So the initialization will only be performed if it hasn't
 # been done yet.
 - name: Init cluster inside the transient k3s-init service

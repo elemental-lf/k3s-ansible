@@ -22,7 +22,7 @@ vrrp_instance VI_1 {
     state {{ keepalived_vrrp_state | default('BACKUP') }}
 
     virtual_ipaddress {
-       {{ keepalived_apiserver_vip | default(apiserver_endpoint) }}
+       {{ keepalived_apiserver_vip_w_default }}
     }
 
     track_script {

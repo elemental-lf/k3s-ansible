@@ -60,6 +60,10 @@
     keepalived_vrrp_state: 'MASTER'
   when: inventory_hostname == groups['server']
 
+- name: Ensure keepalived virtual IP address is set
+  set_fact:
+    keepalived_apiserver_vip_w_default: "{{ keepalived_apiserver_vip | default(apiserver_endpoint) }}"
+
 - name: Ensure keepalived service configuration template is correct
   template:
     src: keepalived.conf.j2

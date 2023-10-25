@@ -19,6 +19,7 @@ Vagrant.configure("2") do |config|
     libvirt.memory = 2048
     libvirt.cpus = 2
     libvirt.qemu_use_session = false
+    libvirt.disk_driver :cache => "unsafe"
     libvirt.storage_pool_name = ENV["LIBVIRT_STORAGE_POOL"] ? ENV["LIBVIRT_STORAGE_POOL"] : "default"
   end
 

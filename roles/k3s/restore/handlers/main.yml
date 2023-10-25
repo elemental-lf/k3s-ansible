@@ -1,0 +1,6 @@
+---
+- name: Remove temporary file for snapshot
+  file:
+    path: "{{ etcd_snapshot_temp.path }}"
+    state: absent
+  listen: remove-temp-file

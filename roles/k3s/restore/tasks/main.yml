@@ -1,0 +1,88 @@
+---
+- name: Shutdown K3s on all agents
+  systemd:
+    name: k3s-agent
+    state: stopped
+  when: inventory_hostname in groups['agent']
+
+- name: Shutdown K3s on all servers
+  systemd:
+    name: k3s
+    state: stopped
+  when: inventory_hostname in groups['server']
+
+- name: Create temporary file for snapshot
+  tempfile:
+    state: file
+    prefix: etcd-snapshot-
+  register: etcd_snapshot_temp
+  notify: remove-temp-file
+  when: inventory_hostname == groups['server'][0]
+
+- name: Copy etc snapshot to the first server
+  copy:
+    src: "{{ etcd_snapshot }}"
+    dest: "{{ etcd_snapshot_temp.path }}"
+    owner: root
+    group: root
+    mode: 0600
+  when: inventory_hostname == groups['server'][0]
+
+- name: Generate timestamp for db backup
+  set_fact:
+    db_timestanp: "{{ ansible_date_time.iso8601_micro }}"
+  run_once: true
+
+- name: Move /var/lib/rancher/k3s/server/db on all servers
+  command:
+    cmd: mv /var/lib/rancher/k3s/server/db /var/lib/rancher/k3s/server/db.{{ db_timestanp }}
+    removes: /var/lib/rancher/k3s/server/db
+    creates: /var/lib/rancher/k3s/server/db.{{ db_timestanp }}
+  when: inventory_hostname in groups['server']
+
+- name: Reset K3s with etcd snapshot on the first server
+  command:
+    cmd: k3s server --cluster-reset --cluster-reset-restore-path {{ etcd_snapshot_temp.path }} --node-ip {{ ansible_host }}
+  when: inventory_hostname == groups['server'][0]
+
+- name: Start K3s on the first server
+  systemd:
+    name: k3s
+    state: started
+  when: inventory_hostname == groups['server'][0]
+
+# K3s on the first server needs some time to start-up and keepalived has to notice this for the VIP to become available.
+- name: Ensure that the Kubernetes API endpoint is reachable
+  uri:
+    url: https://{{ apiserver_endpoint }}:6443/
+    validate_certs: false
+    status_code:
+      - 401
+  register: result
+  until: not result.failed
+  retries: 5
+  delay: 5
+  ignore_errors: true
+  run_once: true
+
+- name: Start K3s on all servers but the first
+  systemd:
+    name: k3s
+    state: started
+  when: inventory_hostname in groups['server'] and inventory_hostname != groups['server'][0]
+
+- name: Verify this server actually joined
+  command:
+    cmd: k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
+  register: nodes
+  until: nodes.rc == 0 and nodes.stdout.find(ansible_nodename) != -1
+  retries: 20
+  delay: 10
+  changed_when: false
+  when: not ansible_check_mode and inventory_hostname in groups['server']
+
+- name: Start K3s on all agents
+  systemd:
+    name: k3s-agent
+    state: started
+  when: inventory_hostname in groups['agent']

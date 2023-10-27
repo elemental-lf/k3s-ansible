@@ -42,7 +42,11 @@
 
 - name: Reset K3s with etcd snapshot on the first server
   command:
-    cmd: k3s server --cluster-reset --cluster-reset-restore-path {{ etcd_snapshot_temp.path }} --node-ip {{ ansible_host }}
+    cmd: >-
+      k3s server
+      --cluster-reset
+      --cluster-reset-restore-path {{ etcd_snapshot_temp.path }}
+      {%  if node_ip is defined %}--node-ip {{ node_ip }}{% endif %}
   when: inventory_hostname == groups['server'][0]
 
 - name: Start K3s on the first server

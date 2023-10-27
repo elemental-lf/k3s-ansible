@@ -6,23 +6,63 @@
   changed_when: true
   when: k3s_binary_changed
 
-- name: Ensure that no environment files exist for service k3s
-  file:
-    path: /etc/systemd/system/k3s.service.env
-    state: absent
+# This task will be skipped if k3s.service already exists. So the initialization will only be performed if it hasn't
+# been done yet.
+- name: Initialize first server
+  block:
+    # This will remove the transient service if systemd kept it around because it failed.
+    - name: Clean previous runs of k3s-init (remove failed transient service)
+      command: systemctl reset-failed k3s-init
+      failed_when: false
+      changed_when: false
+    - name: Init cluster inside the transient k3s-init service
+      vars:
+        server_init_args: >-
+          {% if node_ip is defined %}
+          --node-ip {{ node_ip }}
+          {% endif %}
+          {% if inventory_hostname == groups['server'][0] %}
+            --cluster-init
+          {% else %}
+            --server https://{{ server_apiserver_endpoint }}:6443
+          {% endif %}
+          --token {{ k3s_token }}
+          {% for arg in extra_server_args %}
+          {{ arg }}
+          {% endfor %}
+    # EOF
+      command:
+        cmd: "systemd-run -p RestartSec=2 \
+                          -p Restart=on-failure \
+                          --unit=k3s-init \
+                          k3s server {{ server_init_args }}"
+        creates: "{{ systemd_dir }}/k3s.service"
 
-- name: Clean previous runs of k3s-init (stop service)
-  systemd:
-    name: k3s-init
-    state: stopped
-  failed_when: false
-  when: not ansible_check_mode
+    - name: Verification
+      block:
+        - name: Verify this host actually joined (check k3s-init.service if this fails)
+          command:
+            cmd: k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
+          register: nodes
+          until: nodes.rc == 0 and nodes.stdout.find(ansible_nodename) != -1
+          retries: 20
+          delay: 10
+          changed_when: false
+          when: not ansible_check_mode
+      always:
+        - name: Kill the temporary service used for initialization
+          systemd:
+            name: k3s-init
+            state: stopped
+          failed_when: false
+          when: not ansible_check_mode
 
-# This will remove the transient service if systemd kept it around because it failed.
-- name: Clean previous runs of k3s-init (remove failed transient service)
-  command: systemctl reset-failed k3s-init
-  failed_when: false
-  changed_when: false
+        # This will remove the transient service if systemd kept it around because it failed.
+        - name: Clean up the transient k3s-init service
+          command: systemctl reset-failed k3s-init
+          failed_when: false
+          changed_when: false
+  when: inventory_hostname == groups['server'][0] and datastore_endpoint == ""
 
 - name: Copy K3s service environment file
   template:
@@ -31,60 +71,6 @@
     owner: root
     group: root
     mode: 0600
-
-# This task will be skipped if k3s.service already exists. So the initialization will only be performed if it hasn't
-# been done yet.
-- name: Init cluster inside the transient k3s-init service
-  vars:
-    server_init_args: >-
-      {% if node_ip is defined %}
-      --node-ip {{ node_ip }}
-      {% endif %}
-      {% if datastore_endpoint == "" %}
-        {% if inventory_hostname == groups['server'][0] %}
-          --cluster-init
-        {% else %}
-          --server https://{{ server_apiserver_endpoint }}:6443
-        {% endif %}
-      {% else %}
-        --datastore-endpoint {{ datastore_endpoint }}
-      {% endif %}
-      --token {{ k3s_token }}
-      {% for arg in extra_server_args %}
-      {{ arg }}
-      {% endfor %}
-# EOF
-  command:
-    cmd: "systemd-run -p RestartSec=2 \
-                      -p Restart=on-failure \
-                      --unit=k3s-init \
-                      k3s server {{ server_init_args }}"
-    creates: "{{ systemd_dir }}/k3s.service"
-
-- name: Verification
-  block:
-    - name: Verify this host actually joined (check k3s-init.service if this fails)
-      command:
-        cmd: k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
-      register: nodes
-      until: nodes.rc == 0 and nodes.stdout.find(ansible_nodename) != -1
-      retries: 20
-      delay: 10
-      changed_when: false
-      when: not ansible_check_mode
-  always:
-    - name: Kill the temporary service used for initialization
-      systemd:
-        name: k3s-init
-        state: stopped
-      failed_when: false
-      when: not ansible_check_mode
-
-    # This will remove the transient service if systemd kept it around because it failed.
-    - name: Clean up the transient k3s-init service
-      command: systemctl reset-failed k3s-init
-      failed_when: false
-      changed_when: false
 
 - name: Copy K3s service file
   register: k3s_service
@@ -101,6 +87,16 @@
     daemon_reload: "{{ 'yes' if k3s_service.changed else 'no' }}"
     state: "{{ 'restarted' if k3s_service.changed or k3s_binary_changed else 'started' }}"
     enabled: yes
+
+- name: Verify this host actually joined
+  command:
+    cmd: k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
+  register: nodes
+  until: nodes.rc == 0 and nodes.stdout.find(ansible_nodename) != -1
+  retries: 20
+  delay: 10
+  changed_when: false
+  when: not ansible_check_mode
 
 - name: Wait for node-token
   wait_for:

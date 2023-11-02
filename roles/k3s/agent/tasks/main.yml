@@ -6,12 +6,8 @@
   changed_when: true
   when: k3s_binary_changed
 
-- name: Ensure that no environment files exist for service k3s-agent
-  file:
-    path: /etc/systemd/system/k3s-agent.service.env
-    state: absent
-
 - name: Copy K3s service environment file
+  register: k3s_agent_service_env
   template:
     src: "k3s-agent.service.env.j2"
     dest: "{{ systemd_dir }}/k3s-agent.service.env"
@@ -31,6 +27,6 @@
 - name: Enable and check K3s service
   systemd:
     name: k3s-agent
-    daemon_reload: "{{ 'yes' if k3s_agent_service.changed else 'no' }}"
-    state: "{{ 'restarted' if k3s_agent_service.changed or k3s_binary_changed else 'started' }}"
+    daemon_reload: "{{ 'yes' if k3s_agent_service_env.changed or k3s_agent_service_env.changed else 'no' }}"
+    state: "{{ 'restarted' if k3s_agent_service_env.changed or k3s_agent_service.changed or k3s_binary_changed else 'started' }}"
     enabled: yes

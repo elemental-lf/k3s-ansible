@@ -65,6 +65,7 @@
   when: inventory_hostname == groups['server'][0] and datastore_endpoint is not defined
 
 - name: Copy K3s service environment file
+  register: k3s_service_env
   template:
     src: "k3s.service.env.j2"
     dest: "{{ systemd_dir }}/k3s.service.env"
@@ -84,8 +85,8 @@
 - name: Enable and check K3s service
   systemd:
     name: k3s
-    daemon_reload: "{{ 'yes' if k3s_service.changed else 'no' }}"
-    state: "{{ 'restarted' if k3s_service.changed or k3s_binary_changed else 'started' }}"
+    daemon_reload: "{{ 'yes' if k3s_service_env.changed or k3s_service.changed else 'no' }}"
+    state: "{{ 'restarted' if k3s_service_env.changed or k3s_service.changed or k3s_binary_changed else 'started' }}"
     enabled: yes
 
 - name: Verify this host actually joined

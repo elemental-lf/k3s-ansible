@@ -59,6 +59,33 @@
   loop_control:
     loop_var: mounted_fs
 
+- name: List network namespaces
+  register: ip_netns_show
+  command: ip netns show
+  changed_when: false
+
+# While this is part of the original install.sh it is unclear to me why this
+# is necessary because unmounting and removing all files below /run/netns
+# should delete the namespace already.
+- name: Remove network namespaces with cni- prefix
+  register: ip_netns_delete
+  command: ip netns delete {{ item }}
+  loop: "{{ ip_netns_show.stdout_lines | map('regex_search', '^\\S+') | select('match', '^cni-') }}"
+  changed_when: ip_netns_delete is success
+
+- name: Remove network interfaces related to K3s
+  register: ip_link_delete
+  command: ip link delete {{ item }}
+  with_items:
+    - cni0
+    - flannel.1
+    - flannel-v6.1
+    - kube-ipvs0
+    - flannel-wg
+    - flannel-wg-v6
+  changed_when: ip_link_delete is success
+  failed_when: false
+
 - name: Remove service files, binaries and data
   file:
     name: "{{ item }}"

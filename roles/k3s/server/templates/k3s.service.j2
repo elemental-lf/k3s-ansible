@@ -30,7 +30,7 @@ ExecStart=/usr/local/bin/k3s server \
 {%  if node_ip is defined %}
   --node-ip {{ node_ip }} \
 {% endif %}
-{% if datastore_endpoint == "" %}
+{% if datastore_endpoint is not defined %}
   --server https://{{ server_apiserver_endpoint }}:6443 \
 {% endif %}
 {% for arg in extra_server_args %}

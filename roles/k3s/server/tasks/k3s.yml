@@ -15,6 +15,7 @@
       command: systemctl reset-failed k3s-init
       failed_when: false
       changed_when: false
+
     - name: Init cluster inside the transient k3s-init service
       vars:
         server_init_args: >-
@@ -30,7 +31,6 @@
           {% for arg in extra_server_args %}
           {{ arg }}
           {% endfor %}
-    # EOF
       command:
         cmd: "systemd-run -p RestartSec=2 \
                           -p Restart=on-failure \
@@ -62,7 +62,7 @@
           command: systemctl reset-failed k3s-init
           failed_when: false
           changed_when: false
-  when: inventory_hostname == groups['server'][0] and datastore_endpoint == ""
+  when: inventory_hostname == groups['server'][0] and datastore_endpoint is not defined
 
 - name: Copy K3s service environment file
   template:

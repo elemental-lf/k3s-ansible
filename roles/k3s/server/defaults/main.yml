@@ -1,6 +1,4 @@
 ---
-datastore_endpoint: ""
-
 systemd_dir: /etc/systemd/system
 
 keepalived_enabled: false

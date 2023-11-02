@@ -26,7 +26,6 @@
         - /etc/keepalived/keepalived.conf
         - /etc/keepalived
   when:
-    - groups['server'] | length > 1  # Only do this if there is more than one server
     - keepalived_enabled  # also want to be sure this is the desired configuration
 
 - name: Disable services

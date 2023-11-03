@@ -46,7 +46,7 @@
         k3s_selinux_state: 'enforcing'
   when:
     - k3s_selinux_enable
-    - ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux', 'RedHat']
+    - ansible_os_family in ['RedHat']
 
 - name: Set SELinux state
   selinux:

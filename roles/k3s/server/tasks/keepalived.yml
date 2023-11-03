@@ -37,7 +37,7 @@
       - name: load SELinux keepalived-extras policy module
         command: "/sbin/semodule -i '{{ keepalived_selinux_pp }}'"
     when: k3s_selinux_state == 'enforcing' and keepalived_selinux_module_exists is failed
-  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux', 'RedHat', 'AlmaLinux']
+  when: ansible_os_family in ['RedHat']
 
 - name: Ensure ipv4 nonlocal binding is enabled
   sysctl:

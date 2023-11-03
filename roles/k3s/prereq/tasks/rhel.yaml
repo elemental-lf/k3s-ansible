@@ -1,4 +1,5 @@
 ---
+# Per https://docs.k3s.io/advanced#red-hat-enterprise-linux--centos--fedora
 - name: Disable firewalld
   systemd:
     name: firewalld
@@ -7,6 +8,18 @@
     # To prevent start up via D-Bus.
     masked: yes
   # firewalld might not be installed
+  failed_when: false
+
+# Per https://docs.k3s.io/advanced#red-hat-enterprise-linux--centos--fedora
+- name: Disable nm-cloud-setup.service and nm-cloud-setup.timer
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  with_items:
+    - nm-cloud-setup.service
+    - nm-cloud-setup.timer
+  # NetworkManager-cloud-setup might not be installed
   failed_when: false
 
 - name: Add br_netfilter to /etc/modules-load.d/

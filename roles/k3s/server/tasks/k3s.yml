@@ -112,8 +112,9 @@
   register: node_token
 
 - name: Store server node-token
-  set_fact:
-    token: "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
+  add_host:
+    name:   "k3s_global_facts"
+    token:  "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
 
 - name: Create directory .kube
   file:

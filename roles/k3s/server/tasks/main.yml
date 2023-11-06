@@ -1,4 +1,6 @@
 ---
+# output_base_path can be used to set a starting directory when the path of output files is relative.
+# That is why the default is /.
 - set_fact:
     output_base_path: "{{ lookup('env', 'OUTPUT_BASE_PATH') | default('/', True) }}"
 

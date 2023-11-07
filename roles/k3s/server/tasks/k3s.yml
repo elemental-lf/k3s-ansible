@@ -104,19 +104,29 @@
   changed_when: false
   when: not ansible_check_mode
 
-- name: Wait for node-token
-  wait_for:
-    path: /var/lib/rancher/k3s/server/node-token
+- name: Fetch node-token
+  block:
+    - name: Wait for node-token
+      wait_for:
+        path: /var/lib/rancher/k3s/server/node-token
 
-- name: Read node-token from server
-  slurp:
-    src: /var/lib/rancher/k3s/server/node-token
-  register: node_token
+    - name: Read node-token from server
+      slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: node_token
 
-- name: Store server node-token
-  add_host:
-    name:   "k3s_global_facts"
-    token:  "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
+    - name: Decode node-token
+      set_fact:
+        decoded_token: "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
+
+    - name: Store server node-token
+      add_host:
+        name:   "k3s_global_facts"
+        token:  "{{ decoded_token }}"
+      changed_when:
+       - hostvars['k3s_global_facts']['token'] is not defined or hostvars['k3s_global_facts']['token'] != decoded_token
+  run_once: true
+  when: not ansible_check_mode
 
 - name: Create directory .kube
   file:

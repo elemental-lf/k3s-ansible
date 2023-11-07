@@ -14,6 +14,8 @@
     owner: root
     group: root
     mode: 0600
+  # The diff could contain sensitive information.
+  diff: no
 
 - name: Copy K3s service file
   register: k3s_agent_service

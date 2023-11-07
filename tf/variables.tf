@@ -123,3 +123,9 @@ variable "rt_enabled" {
   type    = bool
   default = false
 }
+
+variable "ansible_check_mode" {
+  type        = bool
+  description = "Run ansible-playbook in check mode"
+  default     = false
+}

@@ -84,6 +84,8 @@
     owner: root
     group: root
     mode: 0644
+  # The diff could contain sensitive information.
+  diff: no
 
 - name: Enable and check K3s service
   systemd:
@@ -126,6 +128,8 @@
       changed_when:
        - hostvars['k3s_global_facts']['token'] is not defined or hostvars['k3s_global_facts']['token'] != decoded_token
   run_once: true
+  # The diff could contain sensitive information.
+  diff: no
   when: not ansible_check_mode
 
 - name: Create directory .kube

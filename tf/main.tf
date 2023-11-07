@@ -15,11 +15,12 @@ resource "local_file" "k3s_config_yaml" {
 
 resource "null_resource" "k3s" {
   provisioner "local-exec" {
-    command     = "ANSIBLE_HOST_KEY_CHECKING=False OUTPUT_BASE_PATH='${path.cwd}' ansible-playbook -e '@${local_file.k3s_config_yaml.filename}' -i '${local_file.hosts_ini.filename}' '${path.module}/../site.yml'"
+    command = local.ansible_command
   }
 
   triggers = {
     (local_file.hosts_ini.filename) = sha256(local_file.hosts_ini.content)
     (local_file.k3s_config_yaml.filename) = sha256(local_file.k3s_config_yaml.content)
+    ("ansible_command") = sha256(local.ansible_command)
   }
 }

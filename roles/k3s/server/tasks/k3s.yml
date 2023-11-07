@@ -91,6 +91,8 @@
     daemon_reload: "{{ 'yes' if k3s_service_env.changed or k3s_service.changed else 'no' }}"
     state: "{{ 'restarted' if k3s_service_env.changed or k3s_service.changed or k3s_binary_changed else 'started' }}"
     enabled: yes
+  # If the service isn't present yet, this would fail in check mode.
+  when: not ansible_check_mode
 
 - name: Verify this host actually joined
   command:

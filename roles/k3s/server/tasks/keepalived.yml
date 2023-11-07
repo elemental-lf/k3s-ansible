@@ -87,3 +87,5 @@
     name: keepalived
     state: started
     enabled: true
+  # If the service isn't present yet, this would fail in check mode.
+  when: not ansible_check_mode

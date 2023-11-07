@@ -40,6 +40,8 @@
         # k3s-selinux package might need older version of container-selinux.
         allow_downgrade: true
         state: installed
+      # If the Rancher repo isn't present yet, this would fail in check mode.
+      when: not ansible_check_mode
 
     - name: Record SELinux state
       set_fact:

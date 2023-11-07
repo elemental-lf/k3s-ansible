@@ -5,6 +5,8 @@
     state: restarted
     daemon_reload: true
   listen: restart-k3s-service
+  # If the service isn't present yet, this would fail in check mode.
+  when: not ansible_check_mode
 
 - name: Restart keepalived service
   service:
@@ -12,3 +14,5 @@
     state: restarted
     daemon_reload: true
   listen: restart-keepalived-service
+  # If the service isn't present yet, this would fail in check mode.
+  when: not ansible_check_mode

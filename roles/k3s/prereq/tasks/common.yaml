@@ -54,4 +54,6 @@
   file:
     path: /var/log/journal
     state: directory
-    mode: "0755"
+    owner: root
+    group: systemd-journal
+    mode: "02755"

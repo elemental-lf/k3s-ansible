@@ -129,10 +129,11 @@
         hostvars['k3s_global_facts'] is not defined or
         hostvars['k3s_global_facts']['token'] is not defined or
         hostvars['k3s_global_facts']['token'] != decoded_token
-  run_once: true
   # The diff could contain sensitive information.
   diff: no
-  when: not ansible_check_mode
+  when:
+   - inventory_hostname == groups['server'][0]
+   - not ansible_check_mode
 
 - name: Create directory .kube
   file:

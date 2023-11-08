@@ -9,13 +9,13 @@
   - name: determine if SELinux keepalived-extras security module is already loaded
     shell: /sbin/semodule -lstandard | /bin/grep -q keepalived-extras
     register: keepalived_selinux_module_exists
-    ignore_errors: True
-    check_mode: False
-    changed_when: False
+    check_mode: false
+    changed_when: false
+    failed_when: keepalived_selinux_module_exists.rc == 2
 
   - name: uninstall SELinux keepalived-extras security module (SELinux in K3s is disabled)
     command: /sbin/semodule -r keepalived-extras
-    when: k3s_selinux_state == 'disabled' and keepalived_selinux_module_exists is succeeded
+    when: k3s_selinux_state == 'disabled' and keepalived_selinux_module_exists.rc == 0
 
   - block:
       - set_fact:
@@ -36,7 +36,7 @@
 
       - name: load SELinux keepalived-extras policy module
         command: "/sbin/semodule -i '{{ keepalived_selinux_pp }}'"
-    when: k3s_selinux_state == 'enforcing' and keepalived_selinux_module_exists is failed
+    when: k3s_selinux_state == 'enforcing' and keepalived_selinux_module_exists.rc == 1
   when: ansible_os_family in ['RedHat']
 
 - name: Ensure ipv4 nonlocal binding is enabled

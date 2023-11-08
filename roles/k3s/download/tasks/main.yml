@@ -126,7 +126,7 @@
       file:
         path: "{{ k3s_bin_download_path }}"
         state: absent
-      ignore_errors: true
+      failed_when: false
 
     - name: Bail out if the download failed for some reason
       fail:

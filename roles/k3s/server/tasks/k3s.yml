@@ -125,8 +125,10 @@
       add_host:
         name:   "k3s_global_facts"
         token:  "{{ decoded_token }}"
-      changed_when:
-       - hostvars['k3s_global_facts']['token'] is not defined or hostvars['k3s_global_facts']['token'] != decoded_token
+      changed_when: >-
+        hostvars['k3s_global_facts'] is not defined or
+        hostvars['k3s_global_facts']['token'] is not defined or
+        hostvars['k3s_global_facts']['token'] != decoded_token
   run_once: true
   # The diff could contain sensitive information.
   diff: no

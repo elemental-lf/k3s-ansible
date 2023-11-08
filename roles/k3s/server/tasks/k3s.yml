@@ -75,6 +75,7 @@
     owner: root
     group: root
     mode: 0600
+  diff: no
 
 - name: Copy K3s service file
   register: k3s_service

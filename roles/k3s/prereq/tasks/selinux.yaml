@@ -1,7 +1,7 @@
 ---
 - name: Record SELinux state
   set_fact:
-    k3s_selinux_state: 'disabled'
+    k3s_selinux_state: 'permissive'
 
 - block:
     - block:

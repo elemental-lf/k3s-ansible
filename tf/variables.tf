@@ -129,3 +129,9 @@ variable "ansible_check_mode" {
   description = "Run ansible-playbook in check mode"
   default     = false
 }
+
+variable "ansible_playbook" {
+  type        = string
+  description = "Ansible playbook to run"
+  default     = "site.yml"
+}

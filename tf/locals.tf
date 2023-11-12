@@ -46,5 +46,6 @@ locals {
   EOT
 
   ansible_check_mode = var.ansible_check_mode
-  ansible_command    = "ANSIBLE_HOST_KEY_CHECKING=False OUTPUT_BASE_PATH='${path.cwd}' ansible-playbook %{if local.ansible_check_mode}--check --diff%{endif} -e '@${local_file.k3s_config_yaml.filename}' -i '${local_file.hosts_ini.filename}' '${path.module}/../site.yml'"
+  ansible_playbook   = var.ansible_playbook
+  ansible_command    = "ANSIBLE_HOST_KEY_CHECKING=False OUTPUT_BASE_PATH='${path.cwd}' ansible-playbook %{if local.ansible_check_mode}--check --diff%{endif} -e '@${local_file.k3s_config_yaml.filename}' -i '${local_file.hosts_ini.filename}' '${path.module}/../${local.ansible_playbook}'"
 }

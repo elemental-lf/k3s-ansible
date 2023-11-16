@@ -30,10 +30,10 @@ ExecStart=/usr/local/bin/k3s server \
 {% if k3s_selinux_enable %}
   --selinux \
 {% endif %}
-{%  if node_ip is defined %}
+{%  if node_ip is defined and node_ip != "" %}
   --node-ip {{ node_ip }} \
 {% endif %}
-{% if datastore_endpoint is not defined %}
+{% if datastore_endpoint is not defined or datastore_endpoint == "" %}
   --server https://{{ server_apiserver_endpoint }}:6443 \
 {% endif %}
 {% for arg in extra_server_args %}

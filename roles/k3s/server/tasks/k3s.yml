@@ -22,7 +22,7 @@
           {% if k3s_selinux_enable %}
           --selinux
           {% endif %}
-          {% if node_ip is defined %}
+          {% if node_ip is defined and node_ip != "" %}
           --node-ip {{ node_ip }}
           {% endif %}
           {% if inventory_hostname == groups['server'][0] %}
@@ -65,7 +65,7 @@
           command: systemctl reset-failed k3s-init
           failed_when: false
           changed_when: false
-  when: inventory_hostname == groups['server'][0] and datastore_endpoint is not defined
+  when: inventory_hostname == groups['server'][0] and (datastore_endpoint is not defined or datastore_endpoint == "")
 
 - name: Copy K3s service environment file
   register: k3s_service_env

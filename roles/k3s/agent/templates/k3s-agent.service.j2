@@ -30,7 +30,7 @@ ExecStart=/usr/local/bin/k3s agent \
 {% if k3s_selinux_enable %}
   --selinux \
 {% endif %}
-{%  if node_ip is defined %}
+{%  if node_ip is defined and node_ip != "" %}
   --node-ip {{ node_ip }} \
 {% endif %}
 {%  for arg in extra_agent_args %}

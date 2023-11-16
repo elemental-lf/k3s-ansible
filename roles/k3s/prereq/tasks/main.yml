@@ -1,8 +1,4 @@
 ---
-- fail:
-    msg: "k3s_selinux_enable must be boolean value."
-  when: k3s_selinux_enable | type_debug != "bool"
-
 - import_tasks: selinux.yaml
 
 - import_tasks: rhel.yaml

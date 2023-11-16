@@ -1,4 +1,10 @@
 ---
+- fail:
+    msg: "k3s_selinux_enable must be a boolean value."
+  when:
+    - k3s_selinux_enable is defined
+    - k3s_selinux_enable | type_debug != "bool"
+
 # This assumes that the run-time state matches the user's intent.
 - name: Determine SELinux state
   command: getenforce

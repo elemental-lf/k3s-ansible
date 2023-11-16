@@ -18,6 +18,7 @@ locals {
     rancher_rpm_site         = var.rancher_rpm_site
     rancher_rpm_channel      = var.rancher_rpm_channel
     k3s_selinux_enable       = var.k3s_selinux_enable
+    selinux_state            = var.selinux_state
     keepalived_enabled       = var.keepalived_enabled
     keepalived_interface     = var.keepalived_interface
     keepalived_vrrp_id       = var.keepalived_vrrp_id

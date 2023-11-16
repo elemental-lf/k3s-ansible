@@ -99,6 +99,11 @@ variable "k3s_selinux_enable" {
   default = null
 }
 
+variable "selinux_state" {
+  type    = string
+  default = null
+}
+
 variable "keepalived_enabled" {
   type    = bool
   default = null

@@ -1,10 +1,10 @@
 ---
 - fail:
-    msg: "k3s_selinux_enable must be boolean value."
+    msg: "k3s_selinux_enable must be a boolean value."
   when: k3s_selinux_enable | type_debug != "bool"
 
 - fail:
-    msg: "keepalived_enabled must be boolean value."
+    msg: "keepalived_enabled must be a boolean value."
   when: keepalived_enabled | type_debug != "bool"
 
 # output_base_path can be used to set a starting directory when the path of output files is relative.

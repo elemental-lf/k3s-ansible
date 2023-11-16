@@ -1,4 +1,7 @@
 ---
+- fail:
+    msg: "keepalived_enabled must be boolean value."
+  when: keepalived_enabled | type_debug != "bool"
 
 - name: Disable control plane HA services
   block:

@@ -1,4 +1,9 @@
 ---
+- fail:
+    msg: "k3s_selinux_enable must be boolean value."
+  when:
+    - k3s_selinux_enable is defined
+    - k3s_selinux_enable | type_debug != "bool"
 
 - name: Move downloaded k3s binary into place
   command:

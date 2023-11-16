@@ -92,6 +92,11 @@
     - ansible_os_family in ['RedHat']
 
 - name: Set SELinux state
+  register: set_selinux_state
   selinux:
     policy: "targeted"
     state: "{{ effective_selinux_state }}"
+
+- fail:
+    msg: "Please reboot system to complete SELinux configuration before continuing."
+  when: set_selinux_state.reboot_required

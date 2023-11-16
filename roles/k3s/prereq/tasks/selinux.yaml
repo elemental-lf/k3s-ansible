@@ -1,7 +1,52 @@
 ---
-- name: Record SELinux state
+# This assumes that the run-time state matches the user's intent.
+- name: Determine SELinux state
+  command: getenforce
+  register: determine_selinux_state
+  check_mode: false
+  changed_when: false
+
+- name: Effective SELinux state mirrors system SELinux state
   set_fact:
-    k3s_selinux_state: 'permissive'
+    effective_selinux_state: "{{ determine_selinux_state.stdout | lower }}"
+  when: selinux_state is not defined or selinux_state == ""
+
+- name: Effective SELinux state set by configuration
+  set_fact:
+    effective_selinux_state: "{{ selinux_state }}"
+  when: selinux_state is defined and selinux_state != ""
+
+- name: Enabling K3s SELinux support
+  set_fact:
+    k3s_selinux_enable: true
+  when:
+    - k3s_selinux_enable is not defined
+    - effective_selinux_state in ["permissive", "enforcing"]
+
+- name: Disabling K3s SELinux support
+  set_fact:
+    k3s_selinux_enable: false
+  when:
+    - k3s_selinux_enable is not defined
+    - effective_selinux_state == "disabled"
+
+- debug:
+    msg: >-
+      System SELinux state: {{ determine_selinux_state.stdout | lower }},
+      target SELinux state: {{ effective_selinux_state }},
+      K3s SELinux support enabled: {{ k3s_selinux_enable }}.
+
+- fail:
+    msg: K3s SELinux support must be enabled if target SELinux state is {{ effective_selinux_state }}.
+  when:
+    - not k3s_selinux_enable
+    - effective_selinux_state in ["permissive", "enforcing"]
+
+- fail:
+    msg: K3s SELinux support must be disabled if target SELinux state is {{ effective_selinux_state }}.
+  when:
+    - k3s_selinux_enable
+    - effective_selinux_state == "disabled"
 
 - block:
     - block:
@@ -42,10 +87,6 @@
         state: installed
       # If the Rancher repo isn't present yet, this would fail in check mode.
       when: not ansible_check_mode
-
-    - name: Record SELinux state
-      set_fact:
-        k3s_selinux_state: 'enforcing'
   when:
     - k3s_selinux_enable
     - ansible_os_family in ['RedHat']
@@ -53,4 +94,4 @@
 - name: Set SELinux state
   selinux:
     policy: "targeted"
-    state: "{{ k3s_selinux_state }}"
+    state: "{{ effective_selinux_state }}"

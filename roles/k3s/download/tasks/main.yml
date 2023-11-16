@@ -37,7 +37,9 @@
     force: true
     return_content: false
   register: uri_k3s_release_channel_url
-  when: k3s_version == "" and k3s_commit == ""
+  when:
+   - k3s_version is not defined or k3s_version == ""
+   - k3s_commit is not defined or k3s_commit == ""
   check_mode: no
 
 # k3s_effective_version: version we're going to download and install
@@ -58,7 +60,10 @@
     - set_fact:
         k3s_binary_url: "{{ k3s_github_download_url }}/{{ k3s_version }}/k3s"
         k3s_hash_url: "{{ k3s_github_download_url }}/{{ k3s_version }}/sha256sum-{{ k3s_arch }}.txt"
-  when: uri_k3s_release_channel_url is skipped and k3s_version != "" and k3s_commit == ""
+  when:
+    - uri_k3s_release_channel_url is skipped
+    - k3s_version is defined and k3s_version != ""
+    - k3s_commit is not defined or k3s_commit == ""
 
 - block:
   - set_fact:
@@ -71,7 +76,9 @@
       # checksum file only mentions k3s.
       # k3s_hash_url:   "{{ k3s_google_download_url }}/k3s{{ k3s_suffix }}-{{ k3s_commit }}.sha256sum"
       k3s_hash_url: ""
-  when: uri_k3s_release_channel_url is skipped and k3s_commit != ""
+  when:
+    - uri_k3s_release_channel_url is skipped
+    - k3s_commit is defined and k3s_commit != ""
 
 - debug:
     var: k3s_effective_version

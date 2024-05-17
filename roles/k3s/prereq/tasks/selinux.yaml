@@ -103,6 +103,13 @@
     policy: "targeted"
     state: "{{ effective_selinux_state }}"
 
-- fail:
-    msg: "Please reboot system to complete SELinux configuration before continuing."
+- block:
+  - fail:
+      msg: "Please reboot system to complete SELinux configuration before continuing."
+    when: not reboot_allowed
+
+  - name: Rebooting machine
+    reboot:
+      msg: "Reboot initiated by k3s installation via Ansible"
+    when: reboot_allowed
   when: set_selinux_state.reboot_required

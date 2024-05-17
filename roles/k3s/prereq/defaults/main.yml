@@ -3,3 +3,5 @@ rancher_rpm_site: rpm.rancher.io
 rancher_rpm_channel: stable
 
 extra_files: {}
+
+reboot_allowed: false

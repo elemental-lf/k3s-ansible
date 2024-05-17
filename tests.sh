@@ -45,10 +45,12 @@ export VAGRANT_BOX
 for VAGRANT_BOX in almalinux/8 generic/centos8s; do
   case "$VAGRANT_BOX" in
     generic/centos8s)
+      # This has changed in the past with different box versions.
       keepalived_interface=eth1
       ;;
     almalinux/8)
-      keepalived_interface=ens5
+      # This has changed in the past with different box versions.
+      keepalived_interface=eth1
       ;;
     *)
       echo "keepalived interface for box $VAGRANT_BOX is unknown." 1>&2

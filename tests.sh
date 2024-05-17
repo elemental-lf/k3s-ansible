@@ -66,21 +66,21 @@ for VAGRANT_BOX in almalinux/8 generic/centos8s; do
         vagrant up
 
         run_test site.yml "${scenario}" 1 <<EOF
-k3s_version: v1.26.10-rc1+k3s1
+k3s_version: v1.28.9+k3s1
 k3s_selinux_enable: ${k3s_selinux_enable}
 selinux_state: "${selinux_state}"
 datastore_endpoint: "${datastore_endpoint}"
 keepalived_interface: "${keepalived_interface}"
 EOF
         run_test site.yml "${scenario}" 2 <<EOF
-k3s_version: v1.26.10-rc1+k3s1
+k3s_version: v1.28.9+k3s1
 k3s_selinux_enable: ${k3s_selinux_enable}
 selinux_state: "${selinux_state}"
 datastore_endpoint: "${datastore_endpoint}"
 keepalived_interface: "${keepalived_interface}"
 EOF
         run_test site.yml "${scenario}" 3 <<EOF
-k3s_version: v1.26.10-rc1+k3s1
+k3s_version: v1.28.9+k3s1
 k3s_selinux_enable: ${k3s_selinux_enable}
 selinux_state: "${selinux_state}"
 datastore_endpoint: "${datastore_endpoint}"
@@ -88,7 +88,7 @@ keepalived_interface: "${keepalived_interface}"
 EOF
         run_test site.yml "${scenario}" 3 <<EOF
 k3s_version: ""
-k3s_release_channel: v1.27
+k3s_release_channel: v1.29
 k3s_selinux_enable: ${k3s_selinux_enable}
 selinux_state: "${selinux_state}"
 datastore_endpoint: "${datastore_endpoint}"

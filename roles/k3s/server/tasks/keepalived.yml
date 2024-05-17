@@ -6,6 +6,14 @@
     state: present
 
 - block:
+  - name: Ensure that required packages are installed
+    package:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - checkpolicy
+      - policycoreutils
+
   - name: determine if SELinux keepalived-extras security module is already loaded
     shell: /sbin/semodule -lstandard | /bin/grep -q keepalived-extras
     register: keepalived_selinux_module_exists

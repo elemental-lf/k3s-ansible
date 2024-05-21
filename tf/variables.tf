@@ -129,6 +129,12 @@ variable "rt_enabled" {
   default = false
 }
 
+variable "reboot_allowed" {
+  type        = bool
+  description = "Allow automated reboots during installation of K3s"
+  default     = null
+}
+
 variable "ansible_check_mode" {
   type        = bool
   description = "Run ansible-playbook in check mode"

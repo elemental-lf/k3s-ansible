@@ -6,6 +6,14 @@
   changed_when: true
   when: k3s_binary_changed
 
+- name: Determine TLS SANs
+  set_fact:
+    k3s_server_tls_sans: >
+      {{ [server_apiserver_endpoint, apiserver_endpoint, keepalived_apiserver_vip | default([])] | flatten | unique }}
+
+- debug:
+    var: k3s_server_tls_sans
+
 # This task will be skipped if k3s.service already exists. So the initialization will only be performed if it hasn't
 # been done yet.
 - name: Initialize first server
@@ -26,11 +34,14 @@
           --node-ip {{ node_ip }}
           {% endif %}
           {% if inventory_hostname == groups['server'][0] %}
-            --cluster-init
+          --cluster-init
           {% else %}
-            --server https://{{ server_apiserver_endpoint }}:6443
+          --server https://{{ server_apiserver_endpoint }}:6443
           {% endif %}
           --token {{ k3s_token }}
+          {% for san in k3s_server_tls_sans %}
+          --tls-san {{ san }}
+          {% endfor %}
           {% for arg in extra_server_args %}
           {{ arg }}
           {% endfor %}

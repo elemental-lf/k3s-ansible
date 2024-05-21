@@ -36,6 +36,9 @@ ExecStart=/usr/local/bin/k3s server \
 {% if datastore_endpoint is not defined or datastore_endpoint == "" %}
   --server https://{{ server_apiserver_endpoint }}:6443 \
 {% endif %}
+{% for san in k3s_server_tls_sans %}
+  --tls-san {{ san }} \
+{% endfor %}
 {% for arg in extra_server_args %}
   {{ arg }} \
 {% endfor %}
